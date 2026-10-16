@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ferrflow.com/schema/ferrflow.json",
+  "workspace": {
+    "releaseCommitBody": "full"
+  },
+  "package": [
+    {
+      "name": "ferrgrowth-mcp",
+      "path": "mcp",
+      "tagTemplate": "mcp-v{version}",
+      "changelog": "mcp/CHANGELOG.md",
+      "versionedFiles": [
+        {
+          "path": "mcp/package.json",
+          "format": "json"
+        },
+        {
+          "path": "mcp/packages/ferrgrowth-mcp/package.json",
+          "format": "json"
+        }
+      ]
+    }
+  ]
+}
