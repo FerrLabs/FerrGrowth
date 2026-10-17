@@ -62,7 +62,7 @@ jobs:
       matrix:
         include:
           - package: "@ferrgrowth/mcp"
-            image: ferrgrowth-mcp
+            image: ferrgrowth-mcp-server
     permissions:
       contents: read
       packages: write
