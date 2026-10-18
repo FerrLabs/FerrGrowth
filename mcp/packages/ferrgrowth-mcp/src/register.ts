@@ -8,6 +8,7 @@ import { registerSeoTools } from './tools/seo.js';
 import { registerSeoBulkTools } from './tools/seo-bulk.js';
 import { registerReleaseTools } from './tools/releases.js';
 import { registerFunnelTools } from './tools/funnels.js';
+import { registerGoalTools } from './tools/goals.js';
 import { registerContactTools } from './tools/contacts.js';
 import { registerMemberTools } from './tools/members.js';
 import { registerServerTokenTools } from './tools/server-tokens.js';
@@ -27,6 +28,7 @@ export function register(server: McpServer): void {
   registerSeoBulkTools(server);
   registerReleaseTools(server);
   registerFunnelTools(server);
+  registerGoalTools(server);
   registerContactTools(server);
   registerMemberTools(server);
   registerServerTokenTools(server);
