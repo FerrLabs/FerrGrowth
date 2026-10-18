@@ -30,7 +30,7 @@ function ok(body: unknown = { id: 'x' }, status = 200): Response {
 }
 
 function lastCall(): { url: string; method: string; body: unknown } {
-  const [url, init] = mockFetch.mock.calls[0];
+  const [url, init] = mockFetch.mock.lastCall!;
   return {
     url: String(url),
     method: init.method ?? 'GET',

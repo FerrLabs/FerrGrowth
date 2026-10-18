@@ -154,7 +154,7 @@ export function registerSeoToolkitTools(server: McpServer) {
 
   server.tool(
     'delete_schema_org',
-    'Remove the schema.org JSON-LD from a page of a FerrGrowth site.',
+    'Remove the schema.org JSON-LD from a page of a FerrGrowth site. Irreversible; set it again with set_schema_org to restore it.',
     { site_id: siteSlug, page_slug: pageSlug },
     async ({ site_id, page_slug }) => {
       const token = await getToken();
