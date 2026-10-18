@@ -54,9 +54,11 @@ describe('ferrgrowth insight tools', () => {
     mockFetch.mockResolvedValue(ok());
     const { registerAnalyticsTools } = await import('../analytics.js');
     const { registerFunnelTools } = await import('../funnels.js');
+    const { registerGoalTools } = await import('../goals.js');
     const { registerContactTools } = await import('../contacts.js');
     registerAnalyticsTools(mockServer);
     registerFunnelTools(mockServer);
+    registerGoalTools(mockServer);
     registerContactTools(mockServer);
   });
 
@@ -106,6 +108,45 @@ describe('ferrgrowth insight tools', () => {
   it('get_funnel_analytics sends the window as days', async () => {
     await call('get_funnel_analytics', { site_id: 'shop', funnel_id: 'f-1', days: 7 });
     expect(lastCall().url).toBe(`${GROWTH}/sites/shop/funnels/f-1/analytics?days=7`);
+  });
+
+  it('create_goal posts the goal definition to the site', async () => {
+    await call('create_goal', { site_id: 'shop', name: 'Signup', kind: 'event', target: 'signup' });
+
+    const sent = lastCall();
+    expect(sent.url).toBe(`${GROWTH}/sites/shop/goals`);
+    expect(sent.method).toBe('POST');
+    expect(sent.body).toEqual({ name: 'Signup', kind: 'event', target: 'signup' });
+  });
+
+  it('rejects a goal kind the API does not accept', () => {
+    const kind = schemas.get('create_goal')!.kind;
+    expect(kind.safeParse('click').success).toBe(false);
+    expect(kind.safeParse('form').success).toBe(true);
+  });
+
+  it('list_goals targets the site goals', async () => {
+    await call('list_goals', { site_id: 'shop' });
+    expect(lastCall().url).toBe(`${GROWTH}/sites/shop/goals`);
+  });
+
+  it('delete_goal deletes the goal, not the site', async () => {
+    const result = await call('delete_goal', { site_id: 'shop', goal_id: 'g 1' });
+
+    const sent = lastCall();
+    expect(sent.url).toBe(`${GROWTH}/sites/shop/goals/g%201`);
+    expect(sent.method).toBe('DELETE');
+    expect(result.content[0].text).toContain('g 1');
+  });
+
+  it('get_goal_stats sends the window as days', async () => {
+    await call('get_goal_stats', { site_id: 'shop', days: 7 });
+    expect(lastCall().url).toBe(`${GROWTH}/sites/shop/goals/stats?days=7`);
+  });
+
+  it('get_goal_stats leaves the window to the API when days is omitted', async () => {
+    await call('get_goal_stats', { site_id: 'shop' });
+    expect(lastCall().url).toBe(`${GROWTH}/sites/shop/goals/stats`);
   });
 
   it('get_page_heatmap escapes the page slug and passes days', async () => {
