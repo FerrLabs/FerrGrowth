@@ -29,6 +29,7 @@ Tools marked **destructive** are irreversible or high-impact. MCP clients should
 | `list_sites`, `get_site`, `create_site`, `update_site`, `archive_site`                                   | `archive_site` is **destructive**                                                                                       |
 | `attach_domain`, `detach_domain`, `verify_domain`                                                        | custom domains                                                                                                          |
 | `list_pages`, `get_page`, `create_page`, `update_page`, `publish_page`, `discover_pages`, `import_pages` | pages                                                                                                                   |
+| `list_page_revisions`, `get_page_revision`, `restore_page_revision`                                      | page history; `restore_page_revision` overwrites the current draft (itself recorded, so undoable)                       |
 | `schedule_page`, `unschedule_page`, `create_preview_link`, `list_preview_links`, `revoke_preview_link`   | scheduled publishing, shareable (optionally password-protected) preview links; `revoke_preview_link` is **destructive** |
 | `list_forms`, `get_form`, `create_form`, `update_form`, `delete_form`, `list_form_submissions`           | `delete_form` is **destructive**                                                                                        |
 | `list_releases`, `get_release`, `activate_release`                                                       | `activate_release` is **destructive** (switches live serving)                                                           |
@@ -45,6 +46,9 @@ Tools marked **destructive** are irreversible or high-impact. MCP clients should
 | `list_integrations`, `disconnect_integration`                                                            | `disconnect_integration` is **destructive**                                                                             |
 | `list_blog_posts`, `create_blog_post`, `update_blog_post`, `delete_blog_post`                            | `delete_blog_post` is **destructive**                                                                                   |
 | `list_email_templates`, `create_email_template`, `update_email_template`, `delete_email_template`        | `delete_email_template` is **destructive**                                                                              |
+| `list_redirects`, `create_redirect`, `delete_redirect`                                                   | 301/302/307/308 redirects served before page rendering; `delete_redirect` is **destructive**                            |
+| `get_robots`, `update_robots`                                                                            | custom robots.txt; null restores the default                                                                            |
+| `list_schema_org`, `set_schema_org`, `delete_schema_org`                                                 | per-page JSON-LD injected into the page head; `delete_schema_org` is **destructive**                                    |
 | `list_media`, `upload_media`, `delete_media`                                                             | `upload_media` takes base64, 10 MB cap; `delete_media` is **destructive**                                               |
 
 ## Configuration
