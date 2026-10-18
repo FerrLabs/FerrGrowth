@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.15.0] - 2026-10-18
+
+### Features
+
+- feat(mcp): schedule pages and manage password-protected preview links (#9)
+
 ## [10.14.0] - 2026-10-18
 
 ### Features
