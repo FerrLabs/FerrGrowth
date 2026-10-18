@@ -1,6 +1,7 @@
 import type { McpServer } from '@ferrlabs/mcp-core';
 import { registerSiteTools } from './tools/sites.js';
 import { registerPageTools } from './tools/pages.js';
+import { registerPageRevisionTools } from './tools/page-revisions.js';
 import { registerFormTools } from './tools/forms.js';
 import { registerAnalyticsTools } from './tools/analytics.js';
 import { registerSeoTools } from './tools/seo.js';
@@ -21,6 +22,7 @@ import { registerMediaTools } from './tools/media.js';
 export function register(server: McpServer): void {
   registerSiteTools(server);
   registerPageTools(server);
+  registerPageRevisionTools(server);
   registerFormTools(server);
   registerAnalyticsTools(server);
   registerSeoTools(server);
