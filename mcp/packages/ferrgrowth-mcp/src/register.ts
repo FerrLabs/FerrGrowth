@@ -5,6 +5,7 @@ import { registerFormTools } from './tools/forms.js';
 import { registerAnalyticsTools } from './tools/analytics.js';
 import { registerSeoTools } from './tools/seo.js';
 import { registerSeoBulkTools } from './tools/seo-bulk.js';
+import { registerSeoToolkitTools } from './tools/seo-toolkit.js';
 import { registerReleaseTools } from './tools/releases.js';
 import { registerFunnelTools } from './tools/funnels.js';
 import { registerGoalTools } from './tools/goals.js';
@@ -24,6 +25,7 @@ export function register(server: McpServer): void {
   registerAnalyticsTools(server);
   registerSeoTools(server);
   registerSeoBulkTools(server);
+  registerSeoToolkitTools(server);
   registerReleaseTools(server);
   registerFunnelTools(server);
   registerGoalTools(server);

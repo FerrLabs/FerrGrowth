@@ -44,6 +44,9 @@ Tools marked **destructive** are irreversible or high-impact. MCP clients should
 | `list_integrations`, `disconnect_integration`                                                            | `disconnect_integration` is **destructive**                                                                            |
 | `list_blog_posts`, `create_blog_post`, `update_blog_post`, `delete_blog_post`                            | `delete_blog_post` is **destructive**                                                                                  |
 | `list_email_templates`, `create_email_template`, `update_email_template`, `delete_email_template`        | `delete_email_template` is **destructive**                                                                             |
+| `list_redirects`, `create_redirect`, `delete_redirect`                                                   | 301/302/307/308 redirects served before page rendering; `delete_redirect` is **destructive**                           |
+| `get_robots`, `update_robots`                                                                            | custom robots.txt; null restores the default                                                                           |
+| `list_schema_org`, `set_schema_org`, `delete_schema_org`                                                 | per-page JSON-LD injected into the page head; `delete_schema_org` is **destructive**                                   |
 | `list_media`, `upload_media`, `delete_media`                                                             | `upload_media` takes base64, 10 MB cap; `delete_media` is **destructive**                                              |
 
 ## Configuration
