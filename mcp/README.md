@@ -51,7 +51,7 @@ Every tool takes an optional `org_id` (UUID) that selects the organization for t
 | `list_redirects`, `create_redirect`, `delete_redirect`                                                   | 301/302/307/308 redirects served before page rendering; `delete_redirect` is **destructive**                            |
 | `get_robots`, `update_robots`                                                                            | custom robots.txt; null restores the default                                                                            |
 | `list_schema_org`, `set_schema_org`, `delete_schema_org`                                                 | per-page JSON-LD injected into the page head; `delete_schema_org` is **destructive**                                    |
-| `list_media`, `upload_media`, `delete_media`                                                             | `upload_media` takes base64, 10 MB cap; `delete_media` is **destructive**                                               |
+| `list_media`, `upload_media`, `import_media`, `delete_media`                                             | `upload_media` takes base64, 10 MB cap; `import_media` fetches a public https image by URL; `delete_media` is **destructive** |
 
 ## Configuration
 
