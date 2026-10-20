@@ -246,16 +246,6 @@ describe('ferrgrowth content tools', () => {
     expect(mockFetch.mock.calls[0][1].headers['x-ferrgrowth-org']).toBe(orgId);
   });
 
-  it('import_media refuses a non-https url without calling the API', async () => {
-    const result = (await call('import_media', {
-      site_id: 'shop',
-      url: 'http://cdn.example.com/hero.png',
-    })) as { isError?: boolean };
-
-    expect(result.isError).toBe(true);
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
   it('import_media schema accepts only https urls and bounded filenames', () => {
     const shape = schemas.get('import_media')!;
     expect(shape.url.safeParse('https://cdn.example.com/a.png').success).toBe(true);

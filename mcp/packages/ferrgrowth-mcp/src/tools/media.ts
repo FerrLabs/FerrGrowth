@@ -126,12 +126,6 @@ export function registerMediaTools(server: McpServer) {
       filename: z.string().min(1).max(255).optional().describe('File name to store it under'),
     },
     async ({ org_id, site_id, url, filename }) => {
-      if (!httpsUrl.safeParse(url).success) {
-        return {
-          isError: true,
-          content: [{ type: 'text' as const, text: `${url} is not a valid https URL.` }],
-        };
-      }
       const token = await getToken();
       const asset = await growthRequest<MediaAsset>(`${mediaPath(site_id)}/import`, {
         token,
