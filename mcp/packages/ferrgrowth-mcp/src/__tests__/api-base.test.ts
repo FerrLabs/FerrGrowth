@@ -46,9 +46,11 @@ describe('growthRequest org header', () => {
 
   it('keeps the ApiRequestError type and status on a 403 with an org', async () => {
     mockFetch.mockResolvedValue(response(403, { error: 'not a member' }));
-    const error = await growthRequest('/sites', { token: 't', orgId: ORG_ID }).catch((e) => e);
+    const error: unknown = await growthRequest('/sites', { token: 't', orgId: ORG_ID }).catch(
+      (e: unknown) => e,
+    );
     expect(error).toBeInstanceOf(ApiRequestError);
-    expect(error.status).toBe(403);
+    expect((error as ApiRequestError).status).toBe(403);
   });
 
   it('leaves a 403 untouched when no org was requested', async () => {
