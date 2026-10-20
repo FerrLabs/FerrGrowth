@@ -24,6 +24,8 @@ Tools marked **destructive** are irreversible or high-impact. MCP clients should
 
 ### `@ferrgrowth/mcp`
 
+Every tool takes an optional `org_id` (UUID) that selects the organization for that call, sent as `x-ferrgrowth-org`. Unset sends no header and the organization comes from the token. Find ids with `list_orgs` from `@ferrlabs/mcp`. A non-member gets a 403, reported with the organization id.
+
 | Tool                                                                                                     | Notes                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `list_sites`, `get_site`, `create_site`, `update_site`, `archive_site`                                   | `archive_site` is **destructive**                                                                                       |

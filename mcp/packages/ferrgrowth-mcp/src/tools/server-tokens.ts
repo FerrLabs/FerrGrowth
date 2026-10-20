@@ -6,7 +6,7 @@ import {
   secretRevealRefusal,
   toToolText,
 } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface ServerToken {
   id: string;
@@ -30,13 +30,14 @@ export function registerServerTokenTools(server: McpServer) {
     'list_server_tokens',
     'List the server tokens of a FerrGrowth site (used to send server-side events). Returns prefix, label, last use and revocation date, never the secret.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const tokens = await growthRequest<ServerToken[]>(
         `/sites/${encodeURIComponent(site_id)}/server-tokens`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(tokens) }],
@@ -48,10 +49,11 @@ export function registerServerTokenTools(server: McpServer) {
     'create_server_token',
     'Create a server token for a FerrGrowth site. Disabled unless FERRLABS_MCP_ALLOW_TOKEN_REVEAL=1, because the API shows the secret exactly once and returning it here writes it into the conversation transcript.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       label: z.string().min(1).max(80).describe('Label to tell the token apart'),
     },
-    async ({ site_id, label }) => {
+    async ({ org_id, site_id, label }) => {
       const refusal = secretRevealRefusal({
         action: 'create a server token',
         instead: 'Create the token from the site settings in app.ferrgrowth.com',
@@ -61,7 +63,7 @@ export function registerServerTokenTools(server: McpServer) {
       const token = await getToken();
       const created = await growthRequest<CreatedServerToken>(
         `/sites/${encodeURIComponent(site_id)}/server-tokens`,
-        { token, method: 'POST', body: { label } },
+        { token, orgId: org_id, method: 'POST', body: { label } },
       );
       const { token: secret, ...meta } = created;
       return {
@@ -84,14 +86,15 @@ export function registerServerTokenTools(server: McpServer) {
     'revoke_server_token',
     'Revoke a server token of a FerrGrowth site. Irreversible: requests signed with it are rejected from now on.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       token_id: z.string().min(1).describe('Server token id'),
     },
-    async ({ site_id, token_id }) => {
+    async ({ org_id, site_id, token_id }) => {
       const token = await getToken();
       await growthRequest<void>(
         `/sites/${encodeURIComponent(site_id)}/server-tokens/${encodeURIComponent(token_id)}`,
-        { token, method: 'DELETE' },
+        { token, orgId: org_id, method: 'DELETE' },
       );
       return {
         content: [{ type: 'text' as const, text: `Server token ${token_id} revoked.` }],

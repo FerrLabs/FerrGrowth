@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 type SeoStrategy = 'mobile' | 'desktop';
 
@@ -35,13 +35,14 @@ export function registerSeoTools(server: McpServer) {
     'get_seo_overview',
     'One entry per page of a FerrGrowth site: page slug, title, audited URL and the latest SEO audit run (null if the page was never audited).',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const overview = await growthRequest<SeoOverviewEntry[]>(
         `/sites/${encodeURIComponent(site_id)}/audits/seo/overview`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(overview) }],
@@ -53,6 +54,7 @@ export function registerSeoTools(server: McpServer) {
     'run_seo_audit',
     'Run a fresh SEO audit on a single FerrGrowth page, synchronously. Returns the stored audit run: audited URL, composite score and the full FerrLens payload.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
       strategy: z
@@ -60,10 +62,11 @@ export function registerSeoTools(server: McpServer) {
         .optional()
         .describe('Device profile to audit with (default mobile).'),
     },
-    async ({ site_id, page_slug, strategy }) => {
+    async ({ org_id, site_id, page_slug, strategy }) => {
       const token = await getToken();
       const result = await growthRequest<SeoAuditRun>(pageAuditPath(site_id, page_slug), {
         token,
+        orgId: org_id,
         method: 'POST',
         body: { strategy },
       });
@@ -77,6 +80,7 @@ export function registerSeoTools(server: McpServer) {
     'list_seo_audits',
     'SEO audit history of a single FerrGrowth page, most recent first. Each run carries the score, strategy, audited URL and full payload.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
       limit: z
@@ -87,11 +91,12 @@ export function registerSeoTools(server: McpServer) {
         .optional()
         .describe('Max runs to return (default 30).'),
     },
-    async ({ site_id, page_slug, limit }) => {
+    async ({ org_id, site_id, page_slug, limit }) => {
       const token = await getToken();
       const qs = limit !== undefined ? `?limit=${limit}` : '';
       const runs = await growthRequest<SeoAuditRun[]>(`${pageAuditPath(site_id, page_slug)}${qs}`, {
         token,
+        orgId: org_id,
       });
       return {
         content: [

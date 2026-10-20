@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface Release {
   id: string;
@@ -16,14 +16,15 @@ export function registerReleaseTools(server: McpServer) {
     'get_release',
     'Get details of a single FerrGrowth release (build metadata, size, active flag).',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       release_id: z.string().min(1).describe('Release id'),
     },
-    async ({ site_id, release_id }) => {
+    async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const release = await growthRequest<Release>(
         `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(release) }],
@@ -35,13 +36,14 @@ export function registerReleaseTools(server: McpServer) {
     'list_releases',
     'List bundle releases of a FerrGrowth site (built artefacts). The one with `active: true` is the one currently served.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const releases = await growthRequest<Release[]>(
         `/sites/${encodeURIComponent(site_id)}/releases`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(releases) }],
@@ -53,14 +55,15 @@ export function registerReleaseTools(server: McpServer) {
     'activate_release',
     'Switch the live serving release for a FerrGrowth site to a specific release id (rollback or roll-forward). Atomic — no downtime.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       release_id: z.string().min(1).describe('Release id'),
     },
-    async ({ site_id, release_id }) => {
+    async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const release = await growthRequest<Release>(
         `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}/activate`,
-        { token, method: 'POST' },
+        { token, orgId: org_id, method: 'POST' },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(release) }],
@@ -72,14 +75,15 @@ export function registerReleaseTools(server: McpServer) {
     'restore_release',
     'Copy the page snapshot of an older FerrGrowth release back into the editor as drafts and return how many pages were restored. Overwrites the current draft of every page with the same slug; the live release is not changed.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       release_id: z.string().min(1).describe('Release id'),
     },
-    async ({ site_id, release_id }) => {
+    async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const result = await growthRequest<{ restored_pages: number }>(
         `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}/restore`,
-        { token, method: 'POST' },
+        { token, orgId: org_id, method: 'POST' },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(result) }],

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface MediaAsset {
   id: string;
@@ -42,6 +42,7 @@ export function registerMediaTools(server: McpServer) {
     'list_media',
     "List a FerrGrowth site's media library, newest first. Returns the total count and a page of assets with their public URL, type, size and dimensions.",
     {
+      org_id: orgIdSchema,
       site_id: siteSlug,
       kind: z.enum(['image', 'font']).optional().describe('Only images or only fonts'),
       limit: z
@@ -53,14 +54,17 @@ export function registerMediaTools(server: McpServer) {
         .describe('Max assets to return (default 50).'),
       offset: z.number().int().min(0).optional().describe('Assets to skip, for paging.'),
     },
-    async ({ site_id, kind, limit, offset }) => {
+    async ({ org_id, site_id, kind, limit, offset }) => {
       const token = await getToken();
       const params = new URLSearchParams();
       if (kind !== undefined) params.set('kind', kind);
       if (limit !== undefined) params.set('limit', String(limit));
       if (offset !== undefined) params.set('offset', String(offset));
       const qs = params.size > 0 ? `?${params.toString()}` : '';
-      const media = await growthRequest<MediaList>(`${mediaPath(site_id)}${qs}`, { token });
+      const media = await growthRequest<MediaList>(`${mediaPath(site_id)}${qs}`, {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [
           {
@@ -76,12 +80,13 @@ export function registerMediaTools(server: McpServer) {
     'upload_media',
     `Upload an image or a font to a FerrGrowth site's media library and get back its public URL, ready to use in a page, post or email. The file is passed as base64 and capped at ${MEDIA_MAX_BYTES / 1024 / 1024} MB; the API checks the bytes match the declared type.`,
     {
+      org_id: orgIdSchema,
       site_id: siteSlug,
       filename: z.string().min(1).max(255).describe('File name, e.g. hero.webp'),
       content_type: z.enum(MEDIA_CONTENT_TYPES).describe('MIME type of the file'),
       content_base64: z.base64().min(1).describe('File contents, base64 encoded'),
     },
-    async ({ site_id, filename, content_type, content_base64 }) => {
+    async ({ org_id, site_id, filename, content_type, content_base64 }) => {
       const bytes = Buffer.from(content_base64, 'base64');
       if (bytes.length > MEDIA_MAX_BYTES) {
         return {
@@ -99,6 +104,7 @@ export function registerMediaTools(server: McpServer) {
       const token = await getToken();
       const asset = await growthRequest<MediaAsset>(mediaPath(site_id), {
         token,
+        orgId: org_id,
         method: 'POST',
         body: form,
       });
@@ -112,13 +118,15 @@ export function registerMediaTools(server: McpServer) {
     'delete_media',
     'Delete an asset from a FerrGrowth media library. Irreversible: the file is removed from storage, and pages, posts or emails that still reference its URL will show a broken image.',
     {
+      org_id: orgIdSchema,
       site_id: siteSlug,
       media_id: z.string().min(1).describe('Media asset id'),
     },
-    async ({ site_id, media_id }) => {
+    async ({ org_id, site_id, media_id }) => {
       const token = await getToken();
       await growthRequest<void>(`${mediaPath(site_id)}/${encodeURIComponent(media_id)}`, {
         token,
+        orgId: org_id,
         method: 'DELETE',
       });
       return {

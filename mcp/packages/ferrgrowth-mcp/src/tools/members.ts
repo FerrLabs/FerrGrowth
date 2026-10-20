@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface SiteMember {
   id: string;
@@ -27,11 +27,12 @@ export function registerMemberTools(server: McpServer) {
     'list_site_members',
     'List the end-user members who signed up on a FerrGrowth site, newest first. Returns `total` and a page of `items`.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       limit: z.number().int().min(1).max(200).optional().describe('Page size (default 50).'),
       offset: z.number().int().min(0).optional().describe('Members to skip (default 0).'),
     },
-    async ({ site_id, limit, offset }) => {
+    async ({ org_id, site_id, limit, offset }) => {
       const token = await getToken();
       const params = new URLSearchParams();
       if (limit !== undefined) params.set('limit', String(limit));
@@ -39,7 +40,7 @@ export function registerMemberTools(server: McpServer) {
       const qs = params.size > 0 ? `?${params.toString()}` : '';
       const members = await growthRequest<MemberList>(
         `/sites/${encodeURIComponent(site_id)}/members${qs}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [
@@ -56,14 +57,16 @@ export function registerMemberTools(server: McpServer) {
     'update_site_member',
     'Set the status of a FerrGrowth site member and return the updated member. Suspending also signs the member out of every session.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       member_id: z.string().min(1).describe('Member id'),
       status: z.enum(['active', 'suspended']),
     },
-    async ({ site_id, member_id, status }) => {
+    async ({ org_id, site_id, member_id, status }) => {
       const token = await getToken();
       const member = await growthRequest<SiteMember>(memberPath(site_id, member_id), {
         token,
+        orgId: org_id,
         method: 'PATCH',
         body: { status },
       });
@@ -77,12 +80,17 @@ export function registerMemberTools(server: McpServer) {
     'remove_site_member',
     'Delete a member account from a FerrGrowth site. Irreversible: the account and its sessions are gone, and the person has to sign up again.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       member_id: z.string().min(1).describe('Member id'),
     },
-    async ({ site_id, member_id }) => {
+    async ({ org_id, site_id, member_id }) => {
       const token = await getToken();
-      await growthRequest<void>(memberPath(site_id, member_id), { token, method: 'DELETE' });
+      await growthRequest<void>(memberPath(site_id, member_id), {
+        token,
+        orgId: org_id,
+        method: 'DELETE',
+      });
       return {
         content: [{ type: 'text' as const, text: `Member ${member_id} removed from ${site_id}.` }],
       };

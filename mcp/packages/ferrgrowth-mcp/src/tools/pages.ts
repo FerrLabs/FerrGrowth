@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface Page {
   id: string;
@@ -17,12 +17,14 @@ export function registerPageTools(server: McpServer) {
     'list_pages',
     'List pages on a FerrGrowth site.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const pages = await growthRequest<Page[]>(`/sites/${encodeURIComponent(site_id)}/pages`, {
         token,
+        orgId: org_id,
       });
       return {
         content: [{ type: 'text' as const, text: toToolText(pages) }],
@@ -34,14 +36,15 @@ export function registerPageTools(server: McpServer) {
     'get_page',
     'Get a single FerrGrowth page (full content + metadata).',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
     },
-    async ({ site_id, page_slug }) => {
+    async ({ org_id, site_id, page_slug }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(
         `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(page) }],
@@ -53,14 +56,15 @@ export function registerPageTools(server: McpServer) {
     'publish_page',
     "Publish a FerrGrowth page — flips it live on the site's active release. Idempotent: re-publishing an already-live page is a no-op.",
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
     },
-    async ({ site_id, page_slug }) => {
+    async ({ org_id, site_id, page_slug }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(
         `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}/publish`,
-        { token, method: 'POST' },
+        { token, orgId: org_id, method: 'POST' },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(page) }],
@@ -72,6 +76,7 @@ export function registerPageTools(server: McpServer) {
     'create_page',
     'Create a new page on a FerrGrowth site. Newly created pages are unpublished by default — call publish_page when ready.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       slug: z
         .string()
@@ -84,10 +89,11 @@ export function registerPageTools(server: McpServer) {
         .optional()
         .describe('Initial markdown/MDX body. Optional — pages can start blank.'),
     },
-    async ({ site_id, slug, title, content }) => {
+    async ({ org_id, site_id, slug, title, content }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(`/sites/${encodeURIComponent(site_id)}/pages`, {
         token,
+        orgId: org_id,
         method: 'POST',
         body: { slug, title, content: content ?? '' },
       });
@@ -101,6 +107,7 @@ export function registerPageTools(server: McpServer) {
     'update_page',
     'Patch a FerrGrowth page — title, slug, or content. Only fields you pass are touched. Publishing remains via publish_page.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
       title: z.string().min(1).max(200).optional(),
@@ -113,7 +120,7 @@ export function registerPageTools(server: McpServer) {
         .describe('Rename the page slug (and its URL).'),
       content: z.string().optional(),
     },
-    async ({ site_id, page_slug, new_slug, ...rest }) => {
+    async ({ org_id, site_id, page_slug, new_slug, ...rest }) => {
       const token = await getToken();
       const body: Record<string, unknown> = {};
       if (new_slug !== undefined) body.slug = new_slug;
@@ -122,7 +129,7 @@ export function registerPageTools(server: McpServer) {
       }
       const page = await growthRequest<Page>(
         `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}`,
-        { token, method: 'PATCH', body },
+        { token, orgId: org_id, method: 'PATCH', body },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(page) }],
@@ -134,15 +141,17 @@ export function registerPageTools(server: McpServer) {
     'discover_pages',
     'Crawl a URL and discover candidate pages to import into a FerrGrowth site (sitemap / link graph). Returns a list of candidate page slugs + titles; no pages are created yet — feed the result to import_pages.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       url: z.string().url().describe('Origin URL to crawl.'),
     },
-    async ({ site_id, url }) => {
+    async ({ org_id, site_id, url }) => {
       const token = await getToken();
       const result = await growthRequest<unknown>(
         `/sites/${encodeURIComponent(site_id)}/pages/discover`,
         {
           token,
+          orgId: org_id,
           method: 'POST',
           body: { url },
         },
@@ -157,6 +166,7 @@ export function registerPageTools(server: McpServer) {
     'import_pages',
     'Import the pages discovered by discover_pages into the site. Each item creates an unpublished page; review then publish_page when ready.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       pages: z
         .array(
@@ -169,12 +179,13 @@ export function registerPageTools(server: McpServer) {
         .min(1)
         .describe('Pages to import (typically the output of discover_pages).'),
     },
-    async ({ site_id, pages }) => {
+    async ({ org_id, site_id, pages }) => {
       const token = await getToken();
       const result = await growthRequest<unknown>(
         `/sites/${encodeURIComponent(site_id)}/pages/import`,
         {
           token,
+          orgId: org_id,
           method: 'POST',
           body: { pages },
         },
