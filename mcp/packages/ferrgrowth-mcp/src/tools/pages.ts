@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
 import { growthRequest, orgIdSchema } from '../api-base.js';
+import { buildUpdatePageBody } from './page-update-body.js';
+import { updatePageFields } from './page-update-schema.js';
 
 interface Page {
   id: string;
@@ -84,18 +86,14 @@ export function registerPageTools(server: McpServer) {
         .max(80)
         .regex(/^[a-z0-9/-]+$/, 'lowercase alphanumeric + slashes + hyphens'),
       title: z.string().min(1).max(200),
-      content: z
-        .string()
-        .optional()
-        .describe('Initial markdown/MDX body. Optional — pages can start blank.'),
     },
-    async ({ org_id, site_id, slug, title, content }) => {
+    async ({ org_id, site_id, slug, title }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(`/sites/${encodeURIComponent(site_id)}/pages`, {
         token,
         orgId: org_id,
         method: 'POST',
-        body: { slug, title, content: content ?? '' },
+        body: { slug, title },
       });
       return {
         content: [{ type: 'text' as const, text: toToolText(page) }],
@@ -105,28 +103,16 @@ export function registerPageTools(server: McpServer) {
 
   server.tool(
     'update_page',
-    'Patch a FerrGrowth page — title, slug, or content. Only fields you pass are touched. Publishing remains via publish_page.',
+    'Patch a FerrGrowth page: title, blocks, SEO metadata (meta title/description, og image, canonical, noindex), custom CSS and head HTML. Only fields you pass are touched; null clears nullable fields. Publishing remains via publish_page.',
     {
       org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
-      title: z.string().min(1).max(200).optional(),
-      new_slug: z
-        .string()
-        .min(1)
-        .max(80)
-        .regex(/^[a-z0-9/-]+$/)
-        .optional()
-        .describe('Rename the page slug (and its URL).'),
-      content: z.string().optional(),
+      ...updatePageFields,
     },
-    async ({ org_id, site_id, page_slug, new_slug, ...rest }) => {
+    async ({ org_id, site_id, page_slug, ...fields }) => {
       const token = await getToken();
-      const body: Record<string, unknown> = {};
-      if (new_slug !== undefined) body.slug = new_slug;
-      for (const [k, v] of Object.entries(rest)) {
-        if (v !== undefined) body[k] = v;
-      }
+      const body = buildUpdatePageBody(fields);
       const page = await growthRequest<Page>(
         `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}`,
         { token, orgId: org_id, method: 'PATCH', body },
