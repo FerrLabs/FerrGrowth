@@ -218,6 +218,54 @@ describe('ferrgrowth content tools', () => {
     expect(shape.content_base64.safeParse('not base64!').success).toBe(false);
   });
 
+  it('import_media posts the url and filename as JSON to the import route', async () => {
+    await call('import_media', {
+      site_id: 'my shop',
+      url: 'https://cdn.example.com/hero.png',
+      filename: 'hero.png',
+    });
+
+    const req = lastCall();
+    expect(req.url).toBe(`${GROWTH}/sites/my%20shop/media/import`);
+    expect(req.method).toBe('POST');
+    expect(req.body).toEqual({ url: 'https://cdn.example.com/hero.png', filename: 'hero.png' });
+  });
+
+  it('import_media leaves filename out of the body when not given', async () => {
+    await call('import_media', { site_id: 'shop', url: 'https://cdn.example.com/hero.png' });
+    expect(lastCall().body).toEqual({ url: 'https://cdn.example.com/hero.png' });
+  });
+
+  it('import_media sends the org header when given an org_id', async () => {
+    const orgId = '3f0c6a52-8d1e-4b7a-9c2f-5e6d7a8b9c01';
+    await call('import_media', {
+      org_id: orgId,
+      site_id: 'shop',
+      url: 'https://cdn.example.com/hero.png',
+    });
+    expect(mockFetch.mock.calls[0][1].headers['x-ferrgrowth-org']).toBe(orgId);
+  });
+
+  it('import_media refuses a non-https url without calling the API', async () => {
+    const result = (await call('import_media', {
+      site_id: 'shop',
+      url: 'http://cdn.example.com/hero.png',
+    })) as { isError?: boolean };
+
+    expect(result.isError).toBe(true);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('import_media schema accepts only https urls and bounded filenames', () => {
+    const shape = schemas.get('import_media')!;
+    expect(shape.url.safeParse('https://cdn.example.com/a.png').success).toBe(true);
+    expect(shape.url.safeParse('http://cdn.example.com/a.png').success).toBe(false);
+    expect(shape.url.safeParse('ftp://cdn.example.com/a.png').success).toBe(false);
+    expect(shape.url.safeParse('not a url').success).toBe(false);
+    expect(shape.filename.safeParse('a'.repeat(256)).success).toBe(false);
+    expect(shape.filename.safeParse(undefined).success).toBe(true);
+  });
+
   it('delete_media deletes the asset', async () => {
     mockFetch.mockResolvedValue(noContent());
     const result = await call('delete_media', { site_id: 'shop', media_id: 'm1' });

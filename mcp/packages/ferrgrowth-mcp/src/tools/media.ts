@@ -31,6 +31,8 @@ const MEDIA_CONTENT_TYPES = [
   'font/woff',
 ] as const;
 
+const httpsUrl = z.url({ protocol: /^https$/ });
+
 const siteSlug = z.string().min(1).describe('Site slug');
 
 function mediaPath(site: string): string {
@@ -107,6 +109,35 @@ export function registerMediaTools(server: McpServer) {
         orgId: org_id,
         method: 'POST',
         body: form,
+      });
+      return {
+        content: [{ type: 'text' as const, text: toToolText(asset) }],
+      };
+    },
+  );
+
+  server.tool(
+    'import_media',
+    "Have the server download a public https image (png, jpeg, webp, gif, avif; 10 MB max) into a FerrGrowth site's media library and return its public URL. Use it instead of upload_media for files too large to pass as base64.",
+    {
+      org_id: orgIdSchema,
+      site_id: siteSlug,
+      url: httpsUrl.describe('Public https URL of the image to import'),
+      filename: z.string().min(1).max(255).optional().describe('File name to store it under'),
+    },
+    async ({ org_id, site_id, url, filename }) => {
+      if (!httpsUrl.safeParse(url).success) {
+        return {
+          isError: true,
+          content: [{ type: 'text' as const, text: `${url} is not a valid https URL.` }],
+        };
+      }
+      const token = await getToken();
+      const asset = await growthRequest<MediaAsset>(`${mediaPath(site_id)}/import`, {
+        token,
+        orgId: org_id,
+        method: 'POST',
+        body: { url, ...(filename !== undefined && { filename }) },
       });
       return {
         content: [{ type: 'text' as const, text: toToolText(asset) }],
