@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 const INTEGRATION_KINDS = [
   'stripe',
@@ -23,10 +23,13 @@ export function registerIntegrationTools(server: McpServer) {
   server.tool(
     'list_integrations',
     'List every FerrGrowth integration kind for the active org with its status (`disconnected` when never connected) and connection date.',
-    {},
-    async () => {
+    { org_id: orgIdSchema },
+    async ({ org_id }) => {
       const token = await getToken();
-      const integrations = await growthRequest<Integration[]>('/integrations', { token });
+      const integrations = await growthRequest<Integration[]>('/integrations', {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(integrations) }],
       };
@@ -37,12 +40,14 @@ export function registerIntegrationTools(server: McpServer) {
     'disconnect_integration',
     'Disconnect a FerrGrowth integration for the active org. Irreversible: its stored configuration is deleted and it has to be connected again from the app.',
     {
+      org_id: orgIdSchema,
       kind: z.enum(INTEGRATION_KINDS),
     },
-    async ({ kind }) => {
+    async ({ org_id, kind }) => {
       const token = await getToken();
       await growthRequest<void>(`/integrations/${encodeURIComponent(kind)}/disconnect`, {
         token,
+        orgId: org_id,
         method: 'POST',
       });
       return {

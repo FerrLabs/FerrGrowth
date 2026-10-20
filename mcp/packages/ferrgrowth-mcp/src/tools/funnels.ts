@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 const STEP_KINDS = ['pageview', 'event', 'form'] as const;
 
@@ -57,13 +57,14 @@ export function registerFunnelTools(server: McpServer) {
     'list_funnels',
     'List conversion funnels defined on a FerrGrowth site, most recently updated first, with their ordered steps.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const funnels = await growthRequest<Funnel[]>(
         `/sites/${encodeURIComponent(site_id)}/funnels`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(funnels) }],
@@ -75,14 +76,16 @@ export function registerFunnelTools(server: McpServer) {
     'create_funnel',
     'Create a conversion funnel on a FerrGrowth site and return it. Without steps the API seeds a default Visit, Signup, Activate funnel.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       name: z.string().min(1).max(100),
       steps: stepsSchema.optional().describe('Ordered funnel steps, 1 to 20.'),
     },
-    async ({ site_id, name, steps }) => {
+    async ({ org_id, site_id, name, steps }) => {
       const token = await getToken();
       const funnel = await growthRequest<Funnel>(`/sites/${encodeURIComponent(site_id)}/funnels`, {
         token,
+        orgId: org_id,
         method: 'POST',
         body: steps === undefined ? { name } : { name, steps },
       });
@@ -96,17 +99,19 @@ export function registerFunnelTools(server: McpServer) {
     'update_funnel',
     'Rename a FerrGrowth funnel or replace its steps, and return it. Passing steps replaces the whole list and assigns new step ids.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       funnel_id: z.string().min(1).describe('Funnel id'),
       name: z.string().min(1).max(100).optional(),
       steps: stepsSchema.optional().describe('Full replacement list of ordered steps, 1 to 20.'),
     },
-    async ({ site_id, funnel_id, name, steps }) => {
+    async ({ org_id, site_id, funnel_id, name, steps }) => {
       const token = await getToken();
       const funnel = await growthRequest<Funnel>(
         `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}`,
         {
           token,
+          orgId: org_id,
           method: 'PATCH',
           body: {
             ...(name !== undefined && { name }),
@@ -124,14 +129,15 @@ export function registerFunnelTools(server: McpServer) {
     'delete_funnel',
     'Delete a FerrGrowth funnel definition. Irreversible. The underlying analytics events are kept.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       funnel_id: z.string().min(1).describe('Funnel id'),
     },
-    async ({ site_id, funnel_id }) => {
+    async ({ org_id, site_id, funnel_id }) => {
       const token = await getToken();
       await growthRequest<void>(
         `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}`,
-        { token, method: 'DELETE' },
+        { token, orgId: org_id, method: 'DELETE' },
       );
       return {
         content: [{ type: 'text' as const, text: `Funnel ${funnel_id} deleted.` }],
@@ -143,6 +149,7 @@ export function registerFunnelTools(server: McpServer) {
     'get_funnel_analytics',
     'Conversion analytics of a FerrGrowth funnel: visitors reaching each step in order, conversion rate from the entry step, drop-off from the previous step and the overall conversion rate.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       funnel_id: z.string().min(1).describe('Funnel id'),
       days: z
@@ -153,12 +160,12 @@ export function registerFunnelTools(server: McpServer) {
         .optional()
         .describe('Look-back window in days (default 30).'),
     },
-    async ({ site_id, funnel_id, days }) => {
+    async ({ org_id, site_id, funnel_id, days }) => {
       const token = await getToken();
       const qs = days !== undefined ? `?days=${days}` : '';
       const analytics = await growthRequest<FunnelAnalytics>(
         `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}/analytics${qs}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(analytics) }],

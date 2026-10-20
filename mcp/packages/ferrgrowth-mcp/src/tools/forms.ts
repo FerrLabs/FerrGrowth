@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface Form {
   id: string;
@@ -44,13 +44,15 @@ export function registerFormTools(server: McpServer) {
     'get_form',
     'Get a single FerrGrowth form: name, field schema, destination and 30-day submission count.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       form_id: z.string().min(1).describe('Form id'),
     },
-    async ({ site_id, form_id }) => {
+    async ({ org_id, site_id, form_id }) => {
       const token = await getToken();
       const forms = await growthRequest<Form[]>(`/sites/${encodeURIComponent(site_id)}/forms`, {
         token,
+        orgId: org_id,
       });
       const form = forms.find((f) => f.id === form_id);
       if (!form) {
@@ -69,12 +71,14 @@ export function registerFormTools(server: McpServer) {
     'list_forms',
     'List forms attached to a FerrGrowth site.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const forms = await growthRequest<Form[]>(`/sites/${encodeURIComponent(site_id)}/forms`, {
         token,
+        orgId: org_id,
       });
       return {
         content: [{ type: 'text' as const, text: toToolText(forms) }],
@@ -86,6 +90,7 @@ export function registerFormTools(server: McpServer) {
     'list_form_submissions',
     `List submissions for a FerrGrowth form, most recent first. The API returns at most the latest ${SUBMISSIONS_RETURNED_BY_API}; older ones are not reachable from here.`,
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       form_id: z.string().min(1).describe('Form id'),
       limit: z
@@ -96,11 +101,11 @@ export function registerFormTools(server: McpServer) {
         .optional()
         .describe(`Keep only the most recent N (default ${SUBMISSIONS_RETURNED_BY_API}).`),
     },
-    async ({ site_id, form_id, limit }) => {
+    async ({ org_id, site_id, form_id, limit }) => {
       const token = await getToken();
       const latest = await growthRequest<FormSubmission[]>(
         `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}/submissions`,
-        { token },
+        { token, orgId: org_id },
       );
       const subs = latest.slice(0, limit ?? SUBMISSIONS_RETURNED_BY_API);
       return {
@@ -118,6 +123,7 @@ export function registerFormTools(server: McpServer) {
     'create_form',
     'Create a new form on a FerrGrowth site. Fields are typed; submissions land in list_form_submissions and are forwarded to the destination.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       name: z.string().min(1).max(100),
       fields: z
@@ -139,10 +145,11 @@ export function registerFormTools(server: McpServer) {
       destination: destination.optional(),
       destination_config: destinationConfig.optional(),
     },
-    async ({ site_id, ...formBody }) => {
+    async ({ org_id, site_id, ...formBody }) => {
       const token = await getToken();
       const form = await growthRequest<Form>(`/sites/${encodeURIComponent(site_id)}/forms`, {
         token,
+        orgId: org_id,
         method: 'POST',
         body: formBody,
       });
@@ -156,6 +163,7 @@ export function registerFormTools(server: McpServer) {
     'update_form',
     'Patch a FerrGrowth form: rename it, replace the field schema, or change where submissions go. Only fields you pass are touched.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       form_id: z.string().min(1).describe('Form id'),
       name: z.string().min(1).max(100).optional(),
@@ -173,7 +181,7 @@ export function registerFormTools(server: McpServer) {
       destination: destination.optional(),
       destination_config: destinationConfig.optional(),
     },
-    async ({ site_id, form_id, ...patch }) => {
+    async ({ org_id, site_id, form_id, ...patch }) => {
       const token = await getToken();
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(patch)) {
@@ -181,7 +189,7 @@ export function registerFormTools(server: McpServer) {
       }
       const form = await growthRequest<Form>(
         `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}`,
-        { token, method: 'PATCH', body },
+        { token, orgId: org_id, method: 'PATCH', body },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(form) }],
@@ -193,14 +201,15 @@ export function registerFormTools(server: McpServer) {
     'delete_form',
     'Delete a FerrGrowth form. Existing submissions are kept in the audit table; the form definition is removed.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       form_id: z.string().min(1).describe('Form id'),
     },
-    async ({ site_id, form_id }) => {
+    async ({ org_id, site_id, form_id }) => {
       const token = await getToken();
       await growthRequest<void>(
         `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}`,
-        { token, method: 'DELETE' },
+        { token, orgId: org_id, method: 'DELETE' },
       );
       return {
         content: [{ type: 'text' as const, text: `Form ${form_id} deleted.` }],

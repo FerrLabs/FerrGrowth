@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface PeriodTotals {
   visits: number;
@@ -44,6 +44,7 @@ export function registerAnalyticsTools(server: McpServer) {
     'get_analytics_summary',
     'Visits, unique visitors, conversions and conversion rate for a FerrGrowth site over the last range_days days, with a daily series, the same totals for the previous period, and the top pages, referrers and countries.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       range_days: z
         .number()
@@ -53,12 +54,12 @@ export function registerAnalyticsTools(server: McpServer) {
         .optional()
         .describe('Window in days, counted back from now (default 30).'),
     },
-    async ({ site_id, range_days }) => {
+    async ({ org_id, site_id, range_days }) => {
       const token = await getToken();
       const qs = range_days !== undefined ? `?range_days=${range_days}` : '';
       const summary = await growthRequest<AnalyticsSummary>(
         `/sites/${encodeURIComponent(site_id)}/analytics${qs}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(summary) }],
@@ -70,13 +71,14 @@ export function registerAnalyticsTools(server: McpServer) {
     'get_realtime_analytics',
     'Live snapshot of a FerrGrowth site: distinct visitors in the last 30 seconds, pageviews in the last 5 minutes and the top 5 pages being viewed right now.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const snapshot = await growthRequest<RealtimeSnapshot>(
         `/sites/${encodeURIComponent(site_id)}/analytics/realtime`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(snapshot) }],
@@ -88,13 +90,14 @@ export function registerAnalyticsTools(server: McpServer) {
     'get_tracking_status',
     'Check whether the tracking snippet of a FerrGrowth site is installed and firing: tracking id, first and last event timestamps (null when nothing was ever received), events in the last 24 hours and in total.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const status = await growthRequest<TrackingStatus>(
         `/sites/${encodeURIComponent(site_id)}/tracking/status`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(status) }],
@@ -106,6 +109,7 @@ export function registerAnalyticsTools(server: McpServer) {
     'get_page_heatmap',
     'Click heatmap of a FerrGrowth page: total clicks, a random sample of up to 5000 click points (x and y as 0..1 fractions of the page) and click counts per viewport width bucket.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       page_slug: z.string().min(1).describe('Page slug'),
       days: z
@@ -116,12 +120,12 @@ export function registerAnalyticsTools(server: McpServer) {
         .optional()
         .describe('Look-back window in days (default 30).'),
     },
-    async ({ site_id, page_slug, days }) => {
+    async ({ org_id, site_id, page_slug, days }) => {
       const token = await getToken();
       const qs = days !== undefined ? `?days=${days}` : '';
       const heatmap = await growthRequest<Heatmap>(
         `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}/heatmap${qs}`,
-        { token },
+        { token, orgId: org_id },
       );
       return {
         content: [

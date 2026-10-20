@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest } from '../api-base.js';
+import { growthRequest, orgIdSchema } from '../api-base.js';
 
 interface Site {
   id: string;
@@ -16,10 +16,10 @@ export function registerSiteTools(server: McpServer) {
   server.tool(
     'list_sites',
     "List FerrGrowth sites in the authenticated user's org.",
-    {},
-    async () => {
+    { org_id: orgIdSchema },
+    async ({ org_id }) => {
       const token = await getToken();
-      const sites = await growthRequest<Site[]>('/sites', { token });
+      const sites = await growthRequest<Site[]>('/sites', { token, orgId: org_id });
       return {
         content: [{ type: 'text' as const, text: toToolText(sites) }],
       };
@@ -30,11 +30,15 @@ export function registerSiteTools(server: McpServer) {
     'get_site',
     'Get details for a single FerrGrowth site (status, custom domain, etc.).',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
-      const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}`, { token });
+      const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}`, {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(site) }],
       };
@@ -45,6 +49,7 @@ export function registerSiteTools(server: McpServer) {
     'create_site',
     'Create a new FerrGrowth site. The slug becomes the default `<slug>.ferrgrowth.app` subdomain until you attach a custom domain.',
     {
+      org_id: orgIdSchema,
       slug: z
         .string()
         .min(2)
@@ -52,10 +57,11 @@ export function registerSiteTools(server: McpServer) {
         .regex(/^[a-z0-9-]+$/, 'lowercase alphanumeric + hyphens'),
       name: z.string().min(1).max(100),
     },
-    async ({ slug, name }) => {
+    async ({ org_id, slug, name }) => {
       const token = await getToken();
       const site = await growthRequest<Site>('/sites', {
         token,
+        orgId: org_id,
         method: 'POST',
         body: { slug, name },
       });
@@ -69,6 +75,7 @@ export function registerSiteTools(server: McpServer) {
     'update_site',
     'Rename a FerrGrowth site or change its slug. Slug changes also move the default subdomain.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       slug: z
         .string()
@@ -78,7 +85,7 @@ export function registerSiteTools(server: McpServer) {
         .optional(),
       name: z.string().min(1).max(100).optional(),
     },
-    async ({ site_id, ...patch }) => {
+    async ({ org_id, site_id, ...patch }) => {
       const token = await getToken();
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(patch)) {
@@ -86,6 +93,7 @@ export function registerSiteTools(server: McpServer) {
       }
       const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}`, {
         token,
+        orgId: org_id,
         method: 'PATCH',
         body,
       });
@@ -99,12 +107,14 @@ export function registerSiteTools(server: McpServer) {
     'archive_site',
     'Archive a FerrGrowth site: takes it offline and stops serving its custom domain. Reversible with restore_site.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       await growthRequest<void>(`/sites/${encodeURIComponent(site_id)}`, {
         token,
+        orgId: org_id,
         method: 'DELETE',
       });
       return {
@@ -117,12 +127,14 @@ export function registerSiteTools(server: McpServer) {
     'restore_site',
     'Unarchive a FerrGrowth site. It comes back as a draft and the updated site is returned; publish again to serve it.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}/restore`, {
         token,
+        orgId: org_id,
         method: 'POST',
       });
       return {
@@ -135,6 +147,7 @@ export function registerSiteTools(server: McpServer) {
     'attach_domain',
     'Attach a custom domain to a FerrGrowth site. The domain is registered in the pending state until verify_domain succeeds — DNS-01 verification via a TXT record.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
       domain: z
         .string()
@@ -142,10 +155,11 @@ export function registerSiteTools(server: McpServer) {
         .max(253)
         .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/i, 'looks like a valid domain'),
     },
-    async ({ site_id, domain }) => {
+    async ({ org_id, site_id, domain }) => {
       const token = await getToken();
       const result = await growthRequest<unknown>(`/sites/${encodeURIComponent(site_id)}/domain`, {
         token,
+        orgId: org_id,
         method: 'POST',
         body: { domain },
       });
@@ -159,13 +173,14 @@ export function registerSiteTools(server: McpServer) {
     'verify_domain',
     "Verify the custom domain previously attached to a FerrGrowth site. Checks the DNS TXT challenge — succeeds when the challenge matches, fails otherwise. Idempotent: retry after fixing DNS if it's not propagated yet.",
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       const result = await growthRequest<unknown>(
         `/sites/${encodeURIComponent(site_id)}/domain/verify`,
-        { token, method: 'POST' },
+        { token, orgId: org_id, method: 'POST' },
       );
       return {
         content: [{ type: 'text' as const, text: toToolText(result) }],
@@ -177,12 +192,14 @@ export function registerSiteTools(server: McpServer) {
     'detach_domain',
     'Detach the custom domain from a FerrGrowth site. The site falls back to its `<slug>.ferrgrowth.app` subdomain.',
     {
+      org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
     },
-    async ({ site_id }) => {
+    async ({ org_id, site_id }) => {
       const token = await getToken();
       await growthRequest<void>(`/sites/${encodeURIComponent(site_id)}/domain`, {
         token,
+        orgId: org_id,
         method: 'DELETE',
       });
       return {
