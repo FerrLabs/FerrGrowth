@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ApiRequestError } from '@ferrlabs/mcp-core';
 import { growthRequest, orgIdSchema } from '../api-base.js';
 
 const mockFetch = vi.fn();
@@ -41,6 +42,13 @@ describe('growthRequest org header', () => {
   it('names the organization when the API answers 403', async () => {
     mockFetch.mockResolvedValue(response(403, { error: 'not a member' }));
     await expect(growthRequest('/sites', { token: 't', orgId: ORG_ID })).rejects.toThrow(ORG_ID);
+  });
+
+  it('keeps the ApiRequestError type and status on a 403 with an org', async () => {
+    mockFetch.mockResolvedValue(response(403, { error: 'not a member' }));
+    const error = await growthRequest('/sites', { token: 't', orgId: ORG_ID }).catch((e) => e);
+    expect(error).toBeInstanceOf(ApiRequestError);
+    expect(error.status).toBe(403);
   });
 
   it('leaves a 403 untouched when no org was requested', async () => {

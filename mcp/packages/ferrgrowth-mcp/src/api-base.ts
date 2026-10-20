@@ -28,8 +28,12 @@ function orgHeader(orgId: string | undefined): Record<string, string> {
   return { [ORG_HEADER]: orgId };
 }
 
-function forbiddenOrgError(orgId: string, cause: Error): Error {
-  return new Error(`Access to organization ${orgId} denied: ${cause.message}`, { cause });
+function forbiddenOrgError(orgId: string, cause: ApiRequestError): ApiRequestError {
+  return new ApiRequestError(
+    `Access to organization ${orgId} denied: ${cause.message}`,
+    cause.status,
+    cause.code,
+  );
 }
 
 export async function growthRequest<T>(path: string, options: GrowthRequestOptions): Promise<T> {
