@@ -4,6 +4,13 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.17.0] - 2026-10-20
+
+### Features
+
+- feat(ferrgrowth-mcp): add import_media (#15)
+- feat(ferrgrowth-mcp): add blocks and SEO fields to update_page (#14)
+
 ## [10.16.0] - 2026-10-20
 
 ### Features
