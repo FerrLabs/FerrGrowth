@@ -103,7 +103,7 @@ export function registerPageTools(server: McpServer) {
 
   server.tool(
     'update_page',
-    'Patch a FerrGrowth page: title, slug, blocks, SEO metadata (meta title/description, og image, canonical, noindex), custom CSS and head HTML. Only fields you pass are touched; null clears nullable fields. Publishing remains via publish_page.',
+    'Patch a FerrGrowth page: title, blocks, SEO metadata (meta title/description, og image, canonical, noindex), custom CSS and head HTML. Only fields you pass are touched; null clears nullable fields. Publishing remains via publish_page.',
     {
       org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
