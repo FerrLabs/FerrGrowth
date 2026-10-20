@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.16.0] - 2026-10-20
+
+### Features
+
+- feat(ferrgrowth-mcp): choose the organization per tool call (#13)
+
 ## [10.15.0] - 2026-10-18
 
 ### Features
