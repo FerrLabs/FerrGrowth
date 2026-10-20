@@ -45,13 +45,6 @@ export type BlockInput = z.infer<typeof blockSchema>;
 
 export const updatePageFields = {
   title: z.string().min(1).max(200).optional(),
-  new_slug: z
-    .string()
-    .min(1)
-    .max(80)
-    .regex(/^[a-z0-9/-]+$/)
-    .optional()
-    .describe('Rename the page slug (and its URL).'),
   blocks: z
     .array(blockSchema)
     .optional()

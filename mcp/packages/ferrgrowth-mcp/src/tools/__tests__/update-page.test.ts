@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z, type ZodTypeAny } from 'zod';
 import type { McpServer } from '@ferrlabs/mcp-core';
-import { registerPageTools } from '../tools/pages.js';
+import { registerPageTools } from '../pages.js';
 
 process.env.FERRLABS_API_TOKEN = 'test-token';
 
@@ -68,10 +68,6 @@ describe('update_page', () => {
     const blocks = body.blocks as Array<{ id: string; kind: string }>;
     expect(blocks[0].id).toMatch(UUID);
     expect(blocks[1].id).toBe('keep-me');
-  });
-
-  it('maps new_slug to slug', async () => {
-    expect(await patchBody({ new_slug: 'about' })).toEqual({ slug: 'about' });
   });
 
   it('still sends the org header', async () => {
