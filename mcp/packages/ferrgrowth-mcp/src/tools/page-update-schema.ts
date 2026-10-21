@@ -32,7 +32,7 @@ const BLOCK_KINDS = [
   'footer: columns[{title, links[{label, href}]}]',
   'icon: name, size, color, align',
   'container: layout (flex-row, flex-column, grid, frame), gap, columns, align, justify, children[blocks]',
-  'frame container: children are positioned freely by their style anchorX (left|center|right|stretch), anchorY (top|center|bottom|stretch) and top/right/bottom/left offsets; size the frame with its style height or minHeight, clip with overflow: hidden',
+  'container with layout frame: children are positioned freely by their style anchorX (left|center|right|stretch), anchorY (top|center|bottom|stretch) and top/right/bottom/left offsets; size the frame with its style height or minHeight, clip with overflow: hidden',
   'html: html',
   'divider, spacer: no required props',
 ].join('\n');
