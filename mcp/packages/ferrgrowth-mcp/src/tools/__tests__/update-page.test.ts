@@ -70,6 +70,14 @@ describe('update_page', () => {
     expect(blocks[1].id).toBe('keep-me');
   });
 
+  it('forwards the per-block style untouched', async () => {
+    const style = { bg: '#a13a1e', paddingY: 48, responsive: { sm: { paddingY: 16 } } };
+    const body = await patchBody({
+      blocks: [{ kind: 'text', props: { body: 'x' }, style }],
+    });
+    expect((body.blocks as Array<{ style: unknown }>)[0].style).toEqual(style);
+  });
+
   it('still sends the org header', async () => {
     await handlers.get('update_page')?.({ ...base, org_id: ORG_ID, title: 'T' });
     expect(mockFetch.mock.calls[0][1].headers['x-ferrgrowth-org']).toBe(ORG_ID);
