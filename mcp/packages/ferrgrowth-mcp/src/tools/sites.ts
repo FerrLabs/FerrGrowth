@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
 import { growthRequest, orgIdSchema } from '../api-base.js';
+import { updateSiteFields } from './site-update-schema.js';
 
 interface Site {
   id: string;
@@ -73,7 +74,7 @@ export function registerSiteTools(server: McpServer) {
 
   server.tool(
     'update_site',
-    'Rename a FerrGrowth site or change its slug. Slug changes also move the default subdomain.',
+    'Update a FerrGrowth site: name, slug (also moves the default subdomain), theme, site-wide custom CSS and head HTML.',
     {
       org_id: orgIdSchema,
       site_id: z.string().min(1).describe('Site slug'),
@@ -84,6 +85,7 @@ export function registerSiteTools(server: McpServer) {
         .regex(/^[a-z0-9-]+$/)
         .optional(),
       name: z.string().min(1).max(100).optional(),
+      ...updateSiteFields,
     },
     async ({ org_id, site_id, ...patch }) => {
       const token = await getToken();
