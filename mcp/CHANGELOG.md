@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.19.0] - 2026-10-21
+
+### Features
+
+- feat(mcp): expose theme, custom_css and head_html on update_site (#18)
+
 ## [10.18.0] - 2026-10-21
 
 ### Features
