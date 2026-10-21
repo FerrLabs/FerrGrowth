@@ -39,6 +39,10 @@ export const blockSchema = z.object({
   id: z.string().min(1).optional().describe('Block id. Generated when omitted.'),
   kind: z.string().min(1),
   props: z.record(z.string(), z.unknown()),
+  style: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .describe('Per-block BlockStyle (bg, fg, fontFamily, padding, border, shadow, responsive, ...).'),
 });
 
 export type BlockInput = z.infer<typeof blockSchema>;
