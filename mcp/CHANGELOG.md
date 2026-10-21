@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.18.0] - 2026-10-21
+
+### Features
+
+- feat(mcp): accept a per-block style in update_page (#17)
+
 ## [10.17.1] - 2026-10-21
 
 ### Bug Fixes
