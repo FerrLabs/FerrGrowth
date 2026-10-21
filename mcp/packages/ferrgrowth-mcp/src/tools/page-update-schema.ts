@@ -9,7 +9,8 @@ const BLOCK_KINDS = [
   'Block kinds and key props:',
   'hero: headline, sub',
   'hero_rich: eyebrow, headline, subhead, buttons[{label, href, variant}], bgImage, overlay, align, mediaSide, imageUrl',
-  'text: body',
+  'text: body (inline markup: **bold**, *italic*, [label](url), {#hex|coloured}, newline = line break)',
+  'heading: text (same inline markup), tag (h1..h6)',
   'cta: headline, href, label',
   'cta_section: headline, body, buttons[{label, href, variant}]',
   'button: label, href, variant, size, align, newTab',
@@ -30,7 +31,8 @@ const BLOCK_KINDS = [
   'navbar: logoText, logoUrl, links[{label, href}], cta{label, href}, sticky',
   'footer: columns[{title, links[{label, href}]}]',
   'icon: name, size, color, align',
-  'container: layout, gap, columns, align, justify, children[blocks]',
+  'container: layout (flex-row, flex-column, grid, frame), gap, columns, align, justify, children[blocks]',
+  'frame container: children are positioned freely by their style anchorX (left|center|right|stretch), anchorY (top|center|bottom|stretch) and top/right/bottom/left offsets; size the frame with its style height or minHeight, clip with overflow: hidden',
   'html: html',
   'divider, spacer: no required props',
 ].join('\n');
@@ -42,7 +44,9 @@ export const blockSchema = z.object({
   style: z
     .record(z.string(), z.unknown())
     .optional()
-    .describe('Per-block BlockStyle (bg, fg, fontFamily, padding, border, shadow, responsive, ...).'),
+    .describe(
+      'Per-block BlockStyle (bg, fg, fontFamily, padding, border, shadow, anchorX, anchorY, overflow, responsive, ...).',
+    ),
 });
 
 export type BlockInput = z.infer<typeof blockSchema>;
