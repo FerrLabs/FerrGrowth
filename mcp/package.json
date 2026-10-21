@@ -1,7 +1,7 @@
 {
   "name": "@ferrgrowth/mcp-workspace",
   "private": true,
-  "version": "10.17.0",
+  "version": "10.17.1",
   "description": "FerrGrowth MCP servers: workspace root",
   "license": "MPL-2.0",
   "type": "module",
