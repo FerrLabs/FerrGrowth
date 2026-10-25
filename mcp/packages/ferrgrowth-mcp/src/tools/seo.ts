@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 type SeoStrategy = 'mobile' | 'desktop';
 
@@ -27,7 +27,7 @@ interface SeoOverviewEntry {
 }
 
 function pageAuditPath(siteId: string, pageSlug: string): string {
-  return `/sites/${encodeURIComponent(siteId)}/pages/${encodeURIComponent(pageSlug)}/audits/seo`;
+  return `/sites/${pathSegment(siteId)}/pages/${pathSegment(pageSlug)}/audits/seo`;
 }
 
 export function registerSeoTools(server: McpServer) {
@@ -41,7 +41,7 @@ export function registerSeoTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const overview = await growthRequest<SeoOverviewEntry[]>(
-        `/sites/${encodeURIComponent(site_id)}/audits/seo/overview`,
+        `/sites/${pathSegment(site_id)}/audits/seo/overview`,
         { token, orgId: org_id },
       );
       return {

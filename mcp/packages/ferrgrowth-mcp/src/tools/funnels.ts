@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const STEP_KINDS = ['pageview', 'event', 'form'] as const;
 
@@ -62,10 +62,10 @@ export function registerFunnelTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const funnels = await growthRequest<Funnel[]>(
-        `/sites/${encodeURIComponent(site_id)}/funnels`,
-        { token, orgId: org_id },
-      );
+      const funnels = await growthRequest<Funnel[]>(`/sites/${pathSegment(site_id)}/funnels`, {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(funnels) }],
       };
@@ -83,7 +83,7 @@ export function registerFunnelTools(server: McpServer) {
     },
     async ({ org_id, site_id, name, steps }) => {
       const token = await getToken();
-      const funnel = await growthRequest<Funnel>(`/sites/${encodeURIComponent(site_id)}/funnels`, {
+      const funnel = await growthRequest<Funnel>(`/sites/${pathSegment(site_id)}/funnels`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -108,7 +108,7 @@ export function registerFunnelTools(server: McpServer) {
     async ({ org_id, site_id, funnel_id, name, steps }) => {
       const token = await getToken();
       const funnel = await growthRequest<Funnel>(
-        `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}`,
+        `/sites/${pathSegment(site_id)}/funnels/${pathSegment(funnel_id)}`,
         {
           token,
           orgId: org_id,
@@ -136,7 +136,7 @@ export function registerFunnelTools(server: McpServer) {
     async ({ org_id, site_id, funnel_id }) => {
       const token = await getToken();
       await growthRequest<void>(
-        `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}`,
+        `/sites/${pathSegment(site_id)}/funnels/${pathSegment(funnel_id)}`,
         { token, orgId: org_id, method: 'DELETE' },
       );
       return {
@@ -164,7 +164,7 @@ export function registerFunnelTools(server: McpServer) {
       const token = await getToken();
       const qs = days !== undefined ? `?days=${days}` : '';
       const analytics = await growthRequest<FunnelAnalytics>(
-        `/sites/${encodeURIComponent(site_id)}/funnels/${encodeURIComponent(funnel_id)}/analytics${qs}`,
+        `/sites/${pathSegment(site_id)}/funnels/${pathSegment(funnel_id)}/analytics${qs}`,
         { token, orgId: org_id },
       );
       return {

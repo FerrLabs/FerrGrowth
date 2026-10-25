@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface SiteMember {
   id: string;
@@ -19,7 +19,7 @@ interface MemberList {
 }
 
 function memberPath(site_id: string, member_id: string): string {
-  return `/sites/${encodeURIComponent(site_id)}/members/${encodeURIComponent(member_id)}`;
+  return `/sites/${pathSegment(site_id)}/members/${pathSegment(member_id)}`;
 }
 
 export function registerMemberTools(server: McpServer) {
@@ -39,7 +39,7 @@ export function registerMemberTools(server: McpServer) {
       if (offset !== undefined) params.set('offset', String(offset));
       const qs = params.size > 0 ? `?${params.toString()}` : '';
       const members = await growthRequest<MemberList>(
-        `/sites/${encodeURIComponent(site_id)}/members${qs}`,
+        `/sites/${pathSegment(site_id)}/members${qs}`,
         { token, orgId: org_id },
       );
       return {

@@ -52,3 +52,10 @@ export async function growthRequest<T>(path: string, options: GrowthRequestOptio
     throw error;
   }
 }
+
+export function pathSegment(value: string): string {
+  if (value === '.' || value === '..') {
+    throw new Error(`Invalid path segment: "${value}"`);
+  }
+  return encodeURIComponent(value);
+}

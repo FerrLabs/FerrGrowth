@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const BLOG_STATUSES = ['draft', 'scheduled', 'published', 'archived'] as const;
 
@@ -24,8 +24,8 @@ const siteSlug = z.string().min(1).describe('Site slug');
 const postId = z.string().min(1).describe('Blog post id');
 
 function postPath(site: string, id?: string): string {
-  const base = `/sites/${encodeURIComponent(site)}/blog/posts`;
-  return id === undefined ? base : `${base}/${encodeURIComponent(id)}`;
+  const base = `/sites/${pathSegment(site)}/blog/posts`;
+  return id === undefined ? base : `${base}/${pathSegment(id)}`;
 }
 
 export function registerBlogTools(server: McpServer) {

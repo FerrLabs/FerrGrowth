@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const GOAL_KINDS = ['pageview', 'event', 'form'] as const;
 
@@ -35,7 +35,7 @@ export function registerGoalTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const goals = await growthRequest<Goal[]>(`/sites/${encodeURIComponent(site_id)}/goals`, {
+      const goals = await growthRequest<Goal[]>(`/sites/${pathSegment(site_id)}/goals`, {
         token,
         orgId: org_id,
       });
@@ -61,7 +61,7 @@ export function registerGoalTools(server: McpServer) {
     },
     async ({ org_id, site_id, name, kind, target }) => {
       const token = await getToken();
-      const goal = await growthRequest<Goal>(`/sites/${encodeURIComponent(site_id)}/goals`, {
+      const goal = await growthRequest<Goal>(`/sites/${pathSegment(site_id)}/goals`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -83,10 +83,11 @@ export function registerGoalTools(server: McpServer) {
     },
     async ({ org_id, site_id, goal_id }) => {
       const token = await getToken();
-      await growthRequest<void>(
-        `/sites/${encodeURIComponent(site_id)}/goals/${encodeURIComponent(goal_id)}`,
-        { token, orgId: org_id, method: 'DELETE' },
-      );
+      await growthRequest<void>(`/sites/${pathSegment(site_id)}/goals/${pathSegment(goal_id)}`, {
+        token,
+        orgId: org_id,
+        method: 'DELETE',
+      });
       return {
         content: [{ type: 'text' as const, text: `Goal ${goal_id} deleted.` }],
       };
@@ -111,7 +112,7 @@ export function registerGoalTools(server: McpServer) {
       const token = await getToken();
       const qs = days !== undefined ? `?days=${days}` : '';
       const report = await growthRequest<GoalsReport>(
-        `/sites/${encodeURIComponent(site_id)}/goals/stats${qs}`,
+        `/sites/${pathSegment(site_id)}/goals/stats${qs}`,
         { token, orgId: org_id },
       );
       return {

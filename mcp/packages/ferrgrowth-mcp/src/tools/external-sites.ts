@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface DiscoverExternalResult {
   discovered: number;
@@ -18,7 +18,7 @@ export function registerExternalSiteTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const site = await growthRequest<unknown>(
-        `/sites/${encodeURIComponent(site_id)}/external-url/verify`,
+        `/sites/${pathSegment(site_id)}/external-url/verify`,
         { token, orgId: org_id, method: 'POST' },
       );
       return {
@@ -41,7 +41,7 @@ export function registerExternalSiteTools(server: McpServer) {
     async ({ org_id, site_id, deep }) => {
       const token = await getToken();
       const result = await growthRequest<DiscoverExternalResult>(
-        `/sites/${encodeURIComponent(site_id)}/discover-external`,
+        `/sites/${pathSegment(site_id)}/discover-external`,
         { token, orgId: org_id, method: 'POST', body: { deep: deep ?? false } },
       );
       return {

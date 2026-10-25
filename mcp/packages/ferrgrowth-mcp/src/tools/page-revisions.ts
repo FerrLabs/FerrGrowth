@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const siteSlug = z.string().min(1).describe('Site slug');
 const pageSlug = z.string().min(1).describe('Page slug');
 const revisionId = z.string().min(1).describe('Revision id, from list_page_revisions');
 
 function revisionsPath(site: string, page: string): string {
-  return `/sites/${encodeURIComponent(site)}/pages/${encodeURIComponent(page)}/revisions`;
+  return `/sites/${pathSegment(site)}/pages/${pathSegment(page)}/revisions`;
 }
 
 export function registerPageRevisionTools(server: McpServer) {
@@ -55,7 +55,7 @@ export function registerPageRevisionTools(server: McpServer) {
     async ({ org_id, site_id, page_slug, revision_id }) => {
       const token = await getToken();
       const revision = await growthRequest<unknown>(
-        `${revisionsPath(site_id, page_slug)}/${encodeURIComponent(revision_id)}`,
+        `${revisionsPath(site_id, page_slug)}/${pathSegment(revision_id)}`,
         { token, orgId: org_id },
       );
       return {
@@ -71,7 +71,7 @@ export function registerPageRevisionTools(server: McpServer) {
     async ({ org_id, site_id, page_slug, revision_id }) => {
       const token = await getToken();
       const page = await growthRequest<unknown>(
-        `${revisionsPath(site_id, page_slug)}/${encodeURIComponent(revision_id)}/restore`,
+        `${revisionsPath(site_id, page_slug)}/${pathSegment(revision_id)}/restore`,
         { token, orgId: org_id, method: 'POST' },
       );
       return {

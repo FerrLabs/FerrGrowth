@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 import { buildUpdatePageBody } from './page-update-body.js';
 import { updatePageFields } from './page-update-schema.js';
 
@@ -24,7 +24,7 @@ export function registerPageTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const pages = await growthRequest<Page[]>(`/sites/${encodeURIComponent(site_id)}/pages`, {
+      const pages = await growthRequest<Page[]>(`/sites/${pathSegment(site_id)}/pages`, {
         token,
         orgId: org_id,
       });
@@ -45,7 +45,7 @@ export function registerPageTools(server: McpServer) {
     async ({ org_id, site_id, page_slug }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(
-        `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}`,
+        `/sites/${pathSegment(site_id)}/pages/${pathSegment(page_slug)}`,
         { token, orgId: org_id },
       );
       return {
@@ -65,7 +65,7 @@ export function registerPageTools(server: McpServer) {
     async ({ org_id, site_id, page_slug }) => {
       const token = await getToken();
       const page = await growthRequest<Page>(
-        `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}/publish`,
+        `/sites/${pathSegment(site_id)}/pages/${pathSegment(page_slug)}/publish`,
         { token, orgId: org_id, method: 'POST' },
       );
       return {
@@ -89,7 +89,7 @@ export function registerPageTools(server: McpServer) {
     },
     async ({ org_id, site_id, slug, title }) => {
       const token = await getToken();
-      const page = await growthRequest<Page>(`/sites/${encodeURIComponent(site_id)}/pages`, {
+      const page = await growthRequest<Page>(`/sites/${pathSegment(site_id)}/pages`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -114,7 +114,7 @@ export function registerPageTools(server: McpServer) {
       const token = await getToken();
       const body = buildUpdatePageBody(fields);
       const page = await growthRequest<Page>(
-        `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}`,
+        `/sites/${pathSegment(site_id)}/pages/${pathSegment(page_slug)}`,
         { token, orgId: org_id, method: 'PATCH', body },
       );
       return {
@@ -133,15 +133,12 @@ export function registerPageTools(server: McpServer) {
     },
     async ({ org_id, site_id, url }) => {
       const token = await getToken();
-      const result = await growthRequest<unknown>(
-        `/sites/${encodeURIComponent(site_id)}/pages/discover`,
-        {
-          token,
-          orgId: org_id,
-          method: 'POST',
-          body: { url },
-        },
-      );
+      const result = await growthRequest<unknown>(`/sites/${pathSegment(site_id)}/pages/discover`, {
+        token,
+        orgId: org_id,
+        method: 'POST',
+        body: { url },
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(result) }],
       };
@@ -167,15 +164,12 @@ export function registerPageTools(server: McpServer) {
     },
     async ({ org_id, site_id, pages }) => {
       const token = await getToken();
-      const result = await growthRequest<unknown>(
-        `/sites/${encodeURIComponent(site_id)}/pages/import`,
-        {
-          token,
-          orgId: org_id,
-          method: 'POST',
-          body: { pages },
-        },
-      );
+      const result = await growthRequest<unknown>(`/sites/${pathSegment(site_id)}/pages/import`, {
+        token,
+        orgId: org_id,
+        method: 'POST',
+        body: { pages },
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(result) }],
       };
