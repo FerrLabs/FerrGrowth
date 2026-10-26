@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 import { updateSiteFields } from './site-update-schema.js';
 
 interface Site {
@@ -36,7 +36,7 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}`, {
+      const site = await growthRequest<Site>(`/sites/${pathSegment(site_id)}`, {
         token,
         orgId: org_id,
       });
@@ -93,7 +93,7 @@ export function registerSiteTools(server: McpServer) {
       for (const [k, v] of Object.entries(patch)) {
         if (v !== undefined) body[k] = v;
       }
-      const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}`, {
+      const site = await growthRequest<Site>(`/sites/${pathSegment(site_id)}`, {
         token,
         orgId: org_id,
         method: 'PATCH',
@@ -114,7 +114,7 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      await growthRequest<void>(`/sites/${encodeURIComponent(site_id)}`, {
+      await growthRequest<void>(`/sites/${pathSegment(site_id)}`, {
         token,
         orgId: org_id,
         method: 'DELETE',
@@ -134,7 +134,7 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const site = await growthRequest<Site>(`/sites/${encodeURIComponent(site_id)}/restore`, {
+      const site = await growthRequest<Site>(`/sites/${pathSegment(site_id)}/restore`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -159,7 +159,7 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id, domain }) => {
       const token = await getToken();
-      const result = await growthRequest<unknown>(`/sites/${encodeURIComponent(site_id)}/domain`, {
+      const result = await growthRequest<unknown>(`/sites/${pathSegment(site_id)}/domain`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -180,10 +180,11 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const result = await growthRequest<unknown>(
-        `/sites/${encodeURIComponent(site_id)}/domain/verify`,
-        { token, orgId: org_id, method: 'POST' },
-      );
+      const result = await growthRequest<unknown>(`/sites/${pathSegment(site_id)}/domain/verify`, {
+        token,
+        orgId: org_id,
+        method: 'POST',
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(result) }],
       };
@@ -199,7 +200,7 @@ export function registerSiteTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      await growthRequest<void>(`/sites/${encodeURIComponent(site_id)}/domain`, {
+      await growthRequest<void>(`/sites/${pathSegment(site_id)}/domain`, {
         token,
         orgId: org_id,
         method: 'DELETE',

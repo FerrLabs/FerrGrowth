@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface MediaAsset {
   id: string;
@@ -36,7 +36,7 @@ const httpsUrl = z.url({ protocol: /^https$/ });
 const siteSlug = z.string().min(1).describe('Site slug');
 
 function mediaPath(site: string): string {
-  return `/sites/${encodeURIComponent(site)}/media`;
+  return `/sites/${pathSegment(site)}/media`;
 }
 
 export function registerMediaTools(server: McpServer) {
@@ -149,7 +149,7 @@ export function registerMediaTools(server: McpServer) {
     },
     async ({ org_id, site_id, media_id }) => {
       const token = await getToken();
-      await growthRequest<void>(`${mediaPath(site_id)}/${encodeURIComponent(media_id)}`, {
+      await growthRequest<void>(`${mediaPath(site_id)}/${pathSegment(media_id)}`, {
         token,
         orgId: org_id,
         method: 'DELETE',

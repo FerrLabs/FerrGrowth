@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const TRIGGER_KINDS = [
   'form_submit',
@@ -35,8 +35,8 @@ const triggerKind = z.enum(TRIGGER_KINDS).describe('Event that sends the email')
 const brandInherit = z.boolean().describe("Inherit the site's brand styling (default true)");
 
 function templatePath(site: string, id?: string): string {
-  const base = `/sites/${encodeURIComponent(site)}/email-templates`;
-  return id === undefined ? base : `${base}/${encodeURIComponent(id)}`;
+  const base = `/sites/${pathSegment(site)}/email-templates`;
+  return id === undefined ? base : `${base}/${pathSegment(id)}`;
 }
 
 export function registerEmailTemplateTools(server: McpServer) {

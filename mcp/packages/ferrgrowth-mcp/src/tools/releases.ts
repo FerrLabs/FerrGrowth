@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface Release {
   id: string;
@@ -23,7 +23,7 @@ export function registerReleaseTools(server: McpServer) {
     async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const release = await growthRequest<Release>(
-        `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}`,
+        `/sites/${pathSegment(site_id)}/releases/${pathSegment(release_id)}`,
         { token, orgId: org_id },
       );
       return {
@@ -41,10 +41,10 @@ export function registerReleaseTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const releases = await growthRequest<Release[]>(
-        `/sites/${encodeURIComponent(site_id)}/releases`,
-        { token, orgId: org_id },
-      );
+      const releases = await growthRequest<Release[]>(`/sites/${pathSegment(site_id)}/releases`, {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(releases) }],
       };
@@ -62,7 +62,7 @@ export function registerReleaseTools(server: McpServer) {
     async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const release = await growthRequest<Release>(
-        `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}/activate`,
+        `/sites/${pathSegment(site_id)}/releases/${pathSegment(release_id)}/activate`,
         { token, orgId: org_id, method: 'POST' },
       );
       return {
@@ -82,7 +82,7 @@ export function registerReleaseTools(server: McpServer) {
     async ({ org_id, site_id, release_id }) => {
       const token = await getToken();
       const result = await growthRequest<{ restored_pages: number }>(
-        `/sites/${encodeURIComponent(site_id)}/releases/${encodeURIComponent(release_id)}/restore`,
+        `/sites/${pathSegment(site_id)}/releases/${pathSegment(release_id)}/restore`,
         { token, orgId: org_id, method: 'POST' },
       );
       return {

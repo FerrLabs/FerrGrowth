@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface Form {
   id: string;
@@ -50,7 +50,7 @@ export function registerFormTools(server: McpServer) {
     },
     async ({ org_id, site_id, form_id }) => {
       const token = await getToken();
-      const forms = await growthRequest<Form[]>(`/sites/${encodeURIComponent(site_id)}/forms`, {
+      const forms = await growthRequest<Form[]>(`/sites/${pathSegment(site_id)}/forms`, {
         token,
         orgId: org_id,
       });
@@ -76,7 +76,7 @@ export function registerFormTools(server: McpServer) {
     },
     async ({ org_id, site_id }) => {
       const token = await getToken();
-      const forms = await growthRequest<Form[]>(`/sites/${encodeURIComponent(site_id)}/forms`, {
+      const forms = await growthRequest<Form[]>(`/sites/${pathSegment(site_id)}/forms`, {
         token,
         orgId: org_id,
       });
@@ -104,7 +104,7 @@ export function registerFormTools(server: McpServer) {
     async ({ org_id, site_id, form_id, limit }) => {
       const token = await getToken();
       const latest = await growthRequest<FormSubmission[]>(
-        `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}/submissions`,
+        `/sites/${pathSegment(site_id)}/forms/${pathSegment(form_id)}/submissions`,
         { token, orgId: org_id },
       );
       const subs = latest.slice(0, limit ?? SUBMISSIONS_RETURNED_BY_API);
@@ -147,7 +147,7 @@ export function registerFormTools(server: McpServer) {
     },
     async ({ org_id, site_id, ...formBody }) => {
       const token = await getToken();
-      const form = await growthRequest<Form>(`/sites/${encodeURIComponent(site_id)}/forms`, {
+      const form = await growthRequest<Form>(`/sites/${pathSegment(site_id)}/forms`, {
         token,
         orgId: org_id,
         method: 'POST',
@@ -188,7 +188,7 @@ export function registerFormTools(server: McpServer) {
         if (v !== undefined) body[k] = v;
       }
       const form = await growthRequest<Form>(
-        `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}`,
+        `/sites/${pathSegment(site_id)}/forms/${pathSegment(form_id)}`,
         { token, orgId: org_id, method: 'PATCH', body },
       );
       return {
@@ -207,10 +207,11 @@ export function registerFormTools(server: McpServer) {
     },
     async ({ org_id, site_id, form_id }) => {
       const token = await getToken();
-      await growthRequest<void>(
-        `/sites/${encodeURIComponent(site_id)}/forms/${encodeURIComponent(form_id)}`,
-        { token, orgId: org_id, method: 'DELETE' },
-      );
+      await growthRequest<void>(`/sites/${pathSegment(site_id)}/forms/${pathSegment(form_id)}`, {
+        token,
+        orgId: org_id,
+        method: 'DELETE',
+      });
       return {
         content: [{ type: 'text' as const, text: `Form ${form_id} deleted.` }],
       };

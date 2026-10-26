@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface Contact {
   id: string;
@@ -67,10 +67,10 @@ export function registerContactTools(server: McpServer) {
     },
     async ({ org_id, contact_id }) => {
       const token = await getToken();
-      const contact = await growthRequest<ContactDetail>(
-        `/contacts/${encodeURIComponent(contact_id)}`,
-        { token, orgId: org_id },
-      );
+      const contact = await growthRequest<ContactDetail>(`/contacts/${pathSegment(contact_id)}`, {
+        token,
+        orgId: org_id,
+      });
       return {
         content: [{ type: 'text' as const, text: toToolText(contact) }],
       };
