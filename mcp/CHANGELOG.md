@@ -4,6 +4,14 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.19.1] - 2026-10-26
+
+### Bug Fixes
+
+- fix(deps): override body-parser to >=2.4.0 for GHSA-27r3-jxmh-p828 (#29)
+- fix(mcp): reject dot segments in path arguments (#25)
+- fix(deps): update dependency @ferrlabs/mcp-core to ^10.14.2 (#28)
+
 ## [10.19.0] - 2026-10-21
 
 ### Features

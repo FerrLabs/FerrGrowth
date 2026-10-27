@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface RunAllSeoResult {
   enqueued: number;
@@ -61,7 +61,7 @@ export function registerSeoBulkTools(server: McpServer) {
     async ({ org_id, site_id, stale_after_days, strategy }) => {
       const token = await getToken();
       const result = await growthRequest<RunAllSeoResult>(
-        `/sites/${encodeURIComponent(site_id)}/audits/seo/run-all`,
+        `/sites/${pathSegment(site_id)}/audits/seo/run-all`,
         { token, orgId: org_id, method: 'POST', body: { stale_after_days, strategy } },
       );
       return text(result);
@@ -78,7 +78,7 @@ export function registerSeoBulkTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const status = await growthRequest<SeoQueueStatus>(
-        `/sites/${encodeURIComponent(site_id)}/audits/seo/queue-status`,
+        `/sites/${pathSegment(site_id)}/audits/seo/queue-status`,
         { token, orgId: org_id },
       );
       return text(status);
@@ -95,7 +95,7 @@ export function registerSeoBulkTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const result = await growthRequest<CancelSeoResult>(
-        `/sites/${encodeURIComponent(site_id)}/audits/seo/queue-status/cancel`,
+        `/sites/${pathSegment(site_id)}/audits/seo/queue-status/cancel`,
         { token, orgId: org_id, method: 'POST' },
       );
       return text(result);

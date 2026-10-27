@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface PeriodTotals {
   visits: number;
@@ -58,7 +58,7 @@ export function registerAnalyticsTools(server: McpServer) {
       const token = await getToken();
       const qs = range_days !== undefined ? `?range_days=${range_days}` : '';
       const summary = await growthRequest<AnalyticsSummary>(
-        `/sites/${encodeURIComponent(site_id)}/analytics${qs}`,
+        `/sites/${pathSegment(site_id)}/analytics${qs}`,
         { token, orgId: org_id },
       );
       return {
@@ -77,7 +77,7 @@ export function registerAnalyticsTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const snapshot = await growthRequest<RealtimeSnapshot>(
-        `/sites/${encodeURIComponent(site_id)}/analytics/realtime`,
+        `/sites/${pathSegment(site_id)}/analytics/realtime`,
         { token, orgId: org_id },
       );
       return {
@@ -96,7 +96,7 @@ export function registerAnalyticsTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const status = await growthRequest<TrackingStatus>(
-        `/sites/${encodeURIComponent(site_id)}/tracking/status`,
+        `/sites/${pathSegment(site_id)}/tracking/status`,
         { token, orgId: org_id },
       );
       return {
@@ -124,7 +124,7 @@ export function registerAnalyticsTools(server: McpServer) {
       const token = await getToken();
       const qs = days !== undefined ? `?days=${days}` : '';
       const heatmap = await growthRequest<Heatmap>(
-        `/sites/${encodeURIComponent(site_id)}/pages/${encodeURIComponent(page_slug)}/heatmap${qs}`,
+        `/sites/${pathSegment(site_id)}/pages/${pathSegment(page_slug)}/heatmap${qs}`,
         { token, orgId: org_id },
       );
       return {

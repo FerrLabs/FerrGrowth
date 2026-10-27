@@ -1,6 +1,6 @@
 {
   "name": "@ferrgrowth/mcp",
-  "version": "10.19.0",
+  "version": "10.19.1",
   "description": "Model Context Protocol server for FerrGrowth: sites, pages, forms, audits",
   "license": "MPL-2.0",
   "type": "module",
@@ -21,7 +21,7 @@
     "model-context-protocol"
   ],
   "dependencies": {
-    "@ferrlabs/mcp-core": "^10.14.0",
+    "@ferrlabs/mcp-core": "^10.14.2",
     "zod": "^4.3.6"
   },
   "scripts": {

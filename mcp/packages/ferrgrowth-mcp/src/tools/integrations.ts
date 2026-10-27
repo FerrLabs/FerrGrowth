@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const INTEGRATION_KINDS = [
   'stripe',
@@ -45,7 +45,7 @@ export function registerIntegrationTools(server: McpServer) {
     },
     async ({ org_id, kind }) => {
       const token = await getToken();
-      await growthRequest<void>(`/integrations/${encodeURIComponent(kind)}/disconnect`, {
+      await growthRequest<void>(`/integrations/${pathSegment(kind)}/disconnect`, {
         token,
         orgId: org_id,
         method: 'POST',

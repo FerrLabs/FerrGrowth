@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface SeoRedirect {
   id: string;
@@ -26,7 +26,7 @@ const siteSlug = z.string().min(1).describe('Site slug');
 const pageSlug = z.string().min(1).describe('Page slug, e.g. "index" or "docs/start"');
 
 function seoPath(site: string, ...segments: string[]): string {
-  return [`/sites/${encodeURIComponent(site)}/seo`, ...segments.map(encodeURIComponent)].join('/');
+  return [`/sites/${pathSegment(site)}/seo`, ...segments.map(pathSegment)].join('/');
 }
 
 function text(value: unknown) {

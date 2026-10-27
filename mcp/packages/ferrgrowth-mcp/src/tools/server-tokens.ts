@@ -6,7 +6,7 @@ import {
   secretRevealRefusal,
   toToolText,
 } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 interface ServerToken {
   id: string;
@@ -36,7 +36,7 @@ export function registerServerTokenTools(server: McpServer) {
     async ({ org_id, site_id }) => {
       const token = await getToken();
       const tokens = await growthRequest<ServerToken[]>(
-        `/sites/${encodeURIComponent(site_id)}/server-tokens`,
+        `/sites/${pathSegment(site_id)}/server-tokens`,
         { token, orgId: org_id },
       );
       return {
@@ -62,7 +62,7 @@ export function registerServerTokenTools(server: McpServer) {
 
       const token = await getToken();
       const created = await growthRequest<CreatedServerToken>(
-        `/sites/${encodeURIComponent(site_id)}/server-tokens`,
+        `/sites/${pathSegment(site_id)}/server-tokens`,
         { token, orgId: org_id, method: 'POST', body: { label } },
       );
       const { token: secret, ...meta } = created;
@@ -93,7 +93,7 @@ export function registerServerTokenTools(server: McpServer) {
     async ({ org_id, site_id, token_id }) => {
       const token = await getToken();
       await growthRequest<void>(
-        `/sites/${encodeURIComponent(site_id)}/server-tokens/${encodeURIComponent(token_id)}`,
+        `/sites/${pathSegment(site_id)}/server-tokens/${pathSegment(token_id)}`,
         { token, orgId: org_id, method: 'DELETE' },
       );
       return {

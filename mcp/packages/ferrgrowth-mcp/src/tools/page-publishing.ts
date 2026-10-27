@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { getToken, type McpServer, toToolText } from '@ferrlabs/mcp-core';
-import { growthRequest, orgIdSchema } from '../api-base.js';
+import { growthRequest, orgIdSchema, pathSegment } from '../api-base.js';
 
 const siteId = z.string().min(1).describe('Site slug');
 const pageSlug = z.string().min(1).describe('Page slug');
 
 function pagePath(site: string, page: string): string {
-  return `/sites/${encodeURIComponent(site)}/pages/${encodeURIComponent(page)}`;
+  return `/sites/${pathSegment(site)}/pages/${pathSegment(page)}`;
 }
 
 function textResult(value: unknown) {
@@ -114,7 +114,7 @@ export function registerPagePublishingTools(server: McpServer) {
     async ({ org_id, site_id, link_id }) => {
       const token = await getToken();
       const link = await growthRequest<unknown>(
-        `/sites/${encodeURIComponent(site_id)}/preview-links/${encodeURIComponent(link_id)}`,
+        `/sites/${pathSegment(site_id)}/preview-links/${pathSegment(link_id)}`,
         { token, orgId: org_id, method: 'DELETE' },
       );
       return textResult(link);
