@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.19.4] - 2026-11-09
+
+### Refactoring
+
+- refactor: apply sonar quick wins (#44)
+
 ## [10.19.3] - 2026-11-01
 
 ### Bug Fixes
