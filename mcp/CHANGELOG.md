@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.19.6] - 2026-11-12
+
+### Bug Fixes
+
+- fix(deps): update dependency @ferrlabs/mcp-core to ^10.15.0 (#49)
+
 ## [10.19.5] - 2026-11-10
 
 ### Bug Fixes
