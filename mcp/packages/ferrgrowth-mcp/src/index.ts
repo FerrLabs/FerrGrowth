@@ -6,6 +6,7 @@ try {
   await runMcp({
     name: 'ferrgrowth',
     version: readPackageVersion(import.meta.url),
+    scopes: ['sites:read', 'sites:write', 'sites:admin'],
     register,
   });
 } catch (err: unknown) {
