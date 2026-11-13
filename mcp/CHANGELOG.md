@@ -4,6 +4,12 @@ All notable changes to `ferrgrowth-mcp` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [10.19.7] - 2026-11-13
+
+### Bug Fixes
+
+- fix(mcp): request the FerrGrowth scopes when authorizing (#47)
+
 ## [10.19.6] - 2026-11-12
 
 ### Bug Fixes
