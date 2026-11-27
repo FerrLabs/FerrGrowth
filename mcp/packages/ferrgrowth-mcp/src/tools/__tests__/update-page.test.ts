@@ -1,33 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { z, type ZodTypeAny } from 'zod';
-import type { McpServer } from '@ferrlabs/mcp-core';
+import { z } from 'zod';
 import { registerPageTools } from '../pages.js';
-
-process.env.FERRLABS_API_TOKEN = 'test-token';
+import { handlers, mockFetch, mockServer, ok, schemas } from './support/harness.js';
 
 const ORG_ID = '3f0c6a52-8d1e-4b7a-9c2f-5e6d7a8b9c01';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-type Handler = (params: Record<string, unknown>) => Promise<unknown>;
-
-const handlers = new Map<string, Handler>();
-const shapes = new Map<string, Record<string, ZodTypeAny>>();
-const server = {
-  tool: vi.fn((name: string, _d: string, shape: Record<string, ZodTypeAny>, handler: Handler) => {
-    handlers.set(name, handler);
-    shapes.set(name, shape);
-  }),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-registerPageTools(server);
+registerPageTools(mockServer);
 
 const base = { site_id: 'acme', page_slug: 'home' };
 
 function parseUpdate(input: Record<string, unknown>) {
-  return z.object(shapes.get('update_page') ?? {}).safeParse({ ...base, ...input });
+  return z.object(schemas.get('update_page') ?? {}).safeParse({ ...base, ...input });
 }
 
 async function patchBody(params: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -110,7 +94,7 @@ describe('create_page', () => {
       status: 200,
       text: () => Promise.resolve('{}'),
     } as unknown as Response);
-    expect(shapes.get('create_page')).not.toHaveProperty('content');
+    expect(schemas.get('create_page')).not.toHaveProperty('content');
     await handlers.get('create_page')?.({ site_id: 'acme', slug: 'a', title: 'A' });
     expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({ slug: 'a', title: 'A' });
   });

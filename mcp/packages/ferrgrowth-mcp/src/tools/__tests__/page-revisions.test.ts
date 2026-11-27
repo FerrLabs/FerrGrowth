@@ -1,40 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { ZodTypeAny } from 'zod';
-import type { McpServer } from '@ferrlabs/mcp-core';
-
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (params: Record<string, unknown>) => Promise<{ content: { text?: string }[] }>;
-
-const handlers = new Map<string, Handler>();
-const schemas = new Map<string, Record<string, ZodTypeAny>>();
-const mockServer = {
-  tool: vi.fn(
-    (name: string, _desc: string, schema: Record<string, ZodTypeAny>, handler: Handler) => {
-      handlers.set(name, handler);
-      schemas.set(name, schema);
-    },
-  ),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-function ok(body: unknown): Response {
-  return {
-    ok: true,
-    status: 200,
-    text: () => Promise.resolve(JSON.stringify(body)),
-    json: () => Promise.resolve(body),
-  } as unknown as Response;
-}
-
-function lastCall(): { url: string; method: string } {
-  const [url, init] = mockFetch.mock.calls.at(-1)!;
-  return { url: String(url), method: init.method ?? 'GET' };
-}
-
-const GROWTH = 'https://api.ferrgrowth.com';
+import {
+  call,
+  GROWTH,
+  handlers,
+  lastCall,
+  mockFetch,
+  mockServer,
+  ok,
+  schemas,
+} from './support/harness.js';
 
 describe('page revision tools', () => {
   beforeEach(async () => {
