@@ -1,25 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { z, type ZodTypeAny } from 'zod';
-import type { McpServer } from '@ferrlabs/mcp-core';
+import { z } from 'zod';
 import { registerSiteTools } from '../sites.js';
+import { handlers, mockFetch, mockServer, ok, schemas } from './support/harness.js';
 
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (params: Record<string, unknown>) => Promise<unknown>;
-
-const handlers = new Map<string, Handler>();
-const shapes = new Map<string, Record<string, ZodTypeAny>>();
-const server = {
-  tool: vi.fn((name: string, _d: string, shape: Record<string, ZodTypeAny>, handler: Handler) => {
-    handlers.set(name, handler);
-    shapes.set(name, shape);
-  }),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-registerSiteTools(server);
+registerSiteTools(mockServer);
 
 const theme = {
   colors: {
@@ -35,7 +19,7 @@ const theme = {
 };
 
 function parseUpdate(input: Record<string, unknown>) {
-  return z.object(shapes.get('update_site') ?? {}).safeParse({ site_id: 'acme', ...input });
+  return z.object(schemas.get('update_site') ?? {}).safeParse({ site_id: 'acme', ...input });
 }
 
 describe('update_site', () => {

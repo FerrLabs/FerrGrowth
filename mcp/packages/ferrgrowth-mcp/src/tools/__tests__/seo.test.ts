@@ -1,52 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { ZodTypeAny } from 'zod';
-import type { McpServer } from '@ferrlabs/mcp-core';
-
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (params: Record<string, unknown>) => Promise<{ content: { text?: string }[] }>;
-
-const handlers = new Map<string, Handler>();
-const schemas = new Map<string, Record<string, ZodTypeAny>>();
-const mockServer = {
-  tool: vi.fn(
-    (name: string, _desc: string, schema: Record<string, ZodTypeAny>, handler: Handler) => {
-      handlers.set(name, handler);
-      schemas.set(name, schema);
-    },
-  ),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-function ok(body: unknown = { id: 'x' }): Response {
-  return {
-    ok: true,
-    status: 200,
-    text: () => Promise.resolve(JSON.stringify(body)),
-    json: () => Promise.resolve(body),
-  } as unknown as Response;
-}
-
-function lastCall(): { url: string; method: string; rawBody: unknown; body: unknown } {
-  const [url, init] = mockFetch.mock.calls[0];
-  return {
-    url: String(url),
-    method: init.method ?? 'GET',
-    rawBody: init.body,
-    body: init.body ? JSON.parse(init.body) : undefined,
-  };
-}
-
-const GROWTH = 'https://api.ferrgrowth.com';
+import {
+  call,
+  GROWTH,
+  handlers,
+  lastCall,
+  mockFetch,
+  mockServer,
+  ok,
+  resetHarness,
+  schemas,
+} from './support/harness.js';
 
 describe('ferrgrowth SEO tools', () => {
   beforeEach(async () => {
-    vi.clearAllMocks();
-    handlers.clear();
-    schemas.clear();
-    mockFetch.mockResolvedValue(ok());
+    resetHarness();
     const { registerSeoTools } = await import('../seo.js');
     const { registerSeoBulkTools } = await import('../seo-bulk.js');
     registerSeoTools(mockServer);

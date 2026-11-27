@@ -1,45 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { McpServer } from '@ferrlabs/mcp-core';
+import { call, GROWTH, handlers, lastCall, mockFetch, mockServer, ok } from './support/harness.js';
 
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (
-  params: Record<string, unknown>,
-) => Promise<{ isError?: boolean; content: { text?: string }[] }>;
-
-const handlers = new Map<string, Handler>();
-const mockServer = {
-  tool: vi.fn((name: string, _desc: string, _schema: unknown, handler: Handler) => {
-    handlers.set(name, handler);
-  }),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-function ok(body: unknown = { id: 'x' }): Response {
-  return {
-    ok: true,
-    status: 200,
-    text: () => Promise.resolve(JSON.stringify(body)),
-    json: () => Promise.resolve(body),
-  } as unknown as Response;
-}
-
-function lastCall(): { url: string; method: string; body: unknown } {
-  const [url, init] = mockFetch.mock.calls[0];
-  return {
-    url: String(url),
-    method: init.method ?? 'GET',
-    body: init.body ? JSON.parse(init.body) : undefined,
-  };
-}
-
-function call(name: string, params: Record<string, unknown>) {
-  return handlers.get(name)!(params);
-}
-
-const GROWTH = 'https://api.ferrgrowth.com';
 const SECRET = 'fgs_live_plaintext_secret_value';
 
 describe('ferrgrowth site admin tools', () => {

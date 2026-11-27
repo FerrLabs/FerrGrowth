@@ -1,55 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { z, type ZodTypeAny } from 'zod';
-import type { McpServer } from '@ferrlabs/mcp-core';
-
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (params: Record<string, unknown>) => Promise<{ content: { text?: string }[] }>;
-
-const handlers = new Map<string, Handler>();
-const schemas = new Map<string, Record<string, ZodTypeAny>>();
-const mockServer = {
-  tool: vi.fn(
-    (name: string, _desc: string, schema: Record<string, ZodTypeAny>, handler: Handler) => {
-      handlers.set(name, handler);
-      schemas.set(name, schema);
-    },
-  ),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
-
-function ok(body: unknown = { id: 'x' }, status = 200): Response {
-  return {
-    ok: true,
-    status,
-    text: () => Promise.resolve(status === 204 ? '' : JSON.stringify(body)),
-    json: () => Promise.resolve(body),
-  } as unknown as Response;
-}
-
-function lastCall(): { url: string; method: string; body: unknown } {
-  const [url, init] = mockFetch.mock.lastCall!;
-  return {
-    url: String(url),
-    method: init.method ?? 'GET',
-    body: init.body ? JSON.parse(init.body) : undefined,
-  };
-}
-
-function parses(tool: string, params: Record<string, unknown>): boolean {
-  return z.object(schemas.get(tool)!).safeParse(params).success;
-}
+import { z } from 'zod';
+import {
+  handlers,
+  lastCall,
+  mockFetch,
+  mockServer,
+  ok,
+  parses,
+  resetHarness,
+} from './support/harness.js';
 
 const SEO = 'https://api.ferrgrowth.com/sites/shop/seo';
 
 describe('ferrgrowth seo toolkit tools', () => {
   beforeEach(async () => {
-    vi.clearAllMocks();
-    handlers.clear();
-    schemas.clear();
-    mockFetch.mockResolvedValue(ok());
+    resetHarness();
     const { registerSeoToolkitTools } = await import('../seo-toolkit.js');
     registerSeoToolkitTools(mockServer);
   });
@@ -68,7 +33,7 @@ describe('ferrgrowth seo toolkit tools', () => {
       status_code: 308,
     });
 
-    expect(lastCall()).toEqual({
+    expect(lastCall()).toMatchObject({
       url: `${SEO}/redirects`,
       method: 'POST',
       body: { from_path: '/old', to_url: '/new', status_code: 308 },
@@ -104,7 +69,11 @@ describe('ferrgrowth seo toolkit tools', () => {
   it('update_robots puts the content, null restoring the default', async () => {
     await handlers.get('update_robots')!({ site_id: 'shop', content: null });
 
-    expect(lastCall()).toEqual({ url: `${SEO}/robots`, method: 'PUT', body: { content: null } });
+    expect(lastCall()).toMatchObject({
+      url: `${SEO}/robots`,
+      method: 'PUT',
+      body: { content: null },
+    });
   });
 
   it('update_robots rejects oversized content', () => {
@@ -123,7 +92,7 @@ describe('ferrgrowth seo toolkit tools', () => {
 
     await handlers.get('set_schema_org')!({ site_id: 'shop', page_slug: 'docs/start', schema });
 
-    expect(lastCall()).toEqual({
+    expect(lastCall()).toMatchObject({
       url: `${SEO}/schema-org`,
       method: 'PUT',
       body: { page_slug: 'docs/start', schema },

@@ -1,19 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { McpServer } from '@ferrlabs/mcp-core';
-
-process.env.FERRLABS_API_TOKEN = 'test-token';
-
-type Handler = (params: Record<string, unknown>) => Promise<unknown>;
-
-const handlers = new Map<string, Handler>();
-const mockServer = {
-  tool: vi.fn((name: string, _desc: string, _schema: unknown, handler: Handler) => {
-    handlers.set(name, handler);
-  }),
-} as unknown as McpServer;
-
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
+import { handlers, mockFetch, mockServer } from './support/harness.js';
 
 describe('dot segments in path arguments', () => {
   beforeEach(async () => {
